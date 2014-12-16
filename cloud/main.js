@@ -16,10 +16,6 @@ AV.Cloud.define("InOneUmberCount", function(request, response) {
   });
 });
 
-
-
-
-
 // 发一个请求  done, 
 AV.Cloud.define("requestToSomeone", function(request, response) {
     //当前用户id
