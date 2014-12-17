@@ -28,7 +28,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
     var fromUserId = request.params.userId;
     var toUserId = request.params.toUserId;
 
-	if(fromUserId=='' || toUserId=='' || fromUserId == null || toUserId==null) response.error("param is null when query guys InOneUmberCount.");
+	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query guys InOneUmberCount.");
     var Relationship = AV.Object.extend('Relationship');
     query = new AV.Query(Relationship);
     query.equalTo("fromUser", fromUserId);
@@ -83,7 +83,7 @@ AV.Cloud.define("cancelRequest", function(request, response) {
     var fromUserId = request.params.userId;
     var toUserId = request.params.toUserId;
 
-	if(fromUserId=='' || toUserId=='' || fromUserId == null || toUserId==null) response.error("param is null when query cancelRequest.");
+	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query cancelRequest.");
     // var fromUserId = "testone11";
     // var toUserId = "testtwo1";
 
@@ -338,5 +338,3 @@ AV.Cloud.define("queryDescForUserName", function(request, response) {
     }
   });
 })
-Status API Training Shop Blog About
-© 2014 GitHub, Inc. Terms Privacy Security Contact
