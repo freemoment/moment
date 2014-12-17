@@ -1,33 +1,3 @@
-// find the ones who I sent request 
-// todo: implement again
-AV.Cloud.define("queryMyRequestList", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.find({
-    success: function(result) {
-        response.success(result);
-
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
-})
-
-
-AV.Query.doCloudQuery('select * from User where name = (select name from student )',
- {
-  success: function(result){
-     response.success(result);
-  },
-  error: function(error){
-    //查询失败，查看 error
-    console.dir(error);
-  }
-});
-
-
-////////////////////////////////////////////////////////////////////////////////////
 
 // count of contribution  :取正在共伞的数量  done
 AV.Cloud.define("InOneUmberCount", function(request, response) {
