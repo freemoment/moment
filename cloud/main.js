@@ -416,3 +416,101 @@ AV.Cloud.define("queryDescForUserName", function(request, response) {
     }
   });
 })
+
+
+
+
+// regester
+//   {"phone":"15835267789","username":"kitty","password":"1234"}
+AV.Cloud.define("regesterTest", function(request, response) {
+	var phone = request.params.phone;
+	var username = request.params.username;
+	var password = request.params.password;
+
+	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null) response.error("param is null when register.");
+
+	var _User = AV.Object.extend("_User");
+	var _User = new _User();
+
+	_User.set("mobilePhoneNumber",phone);
+	_User.set("username",username);
+	_User.set("password",password);
+	 _User.save(null, {
+	  success: function(user) {
+		var file = AV.File.withURL('test.jpg', 'http://www.baidu.com/img/chrismaspc_552d5d36d6cd8ed48174902600cb2b4b.gif');
+		
+		file.save().then(function(restult) {
+		  // the object was saved successfully.
+			
+			user.set("image",restult);
+			//query.first
+			user.save(null,{
+			  success: function(results) {
+				  response.success(results);
+			  },
+			  error: function(error) {
+				response.error("Error ");
+			  }
+			});
+		 
+		}, function(error) {
+		  // the save failed.
+		  response.error("Error ");
+		});
+
+	  },
+	  error: function(user, error) {
+		response.error("Error " + error.code + " : " + error.message + " when save.");
+	  }
+	});
+})
+
+
+// regester
+//   {"phone":"15835267789","username":"kitty","password":"1234"}
+AV.Cloud.define("regesterOnline", function(request, response) {
+	var phone = request.params.phone;
+	var username = request.params.username;
+	var password = request.params.password;
+
+	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null) response.error("param is null when register.");
+
+	var _User = AV.Object.extend("_User");
+	var _User = new _User();
+
+	_User.set("mobilePhoneNumber",phone);
+	_User.set("username",username);
+	_User.set("password",password);
+	 _User.save(null, {
+	  success: function(user) {
+		var fileUploadControl = $("#profilePhotoFileUpload")[0];
+		if (fileUploadControl.files.length > 0) {
+		  var file = fileUploadControl.files[0];
+		  var name = "photo.jpg";
+
+		  var avFile = new AV.File(name, file);
+		  avFile.save().then(function(restult) {
+			  // the object was saved successfully.
+				user.set("image",restult);
+				//query.first
+				user.save(null,{
+				  success: function(results) {
+					  response.success(results);
+				  },
+				  error: function(error) {
+					response.error("Error ");
+				  }
+				});
+			}, function(error) {
+			  // the save failed.
+			  response.error("Error ");
+			});
+
+		}
+
+	  },
+	  error: function(user, error) {
+		response.error("Error " + error.code + " : " + error.message + " when save.");
+	  }
+	});
+})
