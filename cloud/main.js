@@ -426,8 +426,9 @@ AV.Cloud.define("regesterTest", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
 	var password = request.params.password;
+	var gender = request.params.gender;
 
-	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null) response.error("param is null when register.");
+	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
 
 	var _User = AV.Object.extend("_User");
 	var _User = new _User();
@@ -435,7 +436,8 @@ AV.Cloud.define("regesterTest", function(request, response) {
 	_User.set("mobilePhoneNumber",phone);
 	_User.set("username",username);
 	_User.set("password",password);
-	 _User.save(null, {
+	_User.set("gender",gender);
+	_User.signUp(null, {
 	  success: function(user) {
 		var file = AV.File.withURL('test.jpg', 'http://www.baidu.com/img/chrismaspc_552d5d36d6cd8ed48174902600cb2b4b.gif');
 		
@@ -472,8 +474,9 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
 	var password = request.params.password;
+	var gender = request.params.gender;
 
-	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null) response.error("param is null when register.");
+	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
 
 	var _User = AV.Object.extend("_User");
 	var _User = new _User();
@@ -481,7 +484,8 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 	_User.set("mobilePhoneNumber",phone);
 	_User.set("username",username);
 	_User.set("password",password);
-	 _User.save(null, {
+	_User.set("gender",gender);
+	 _User.signUp(null, {
 	  success: function(user) {
 		var fileUploadControl = $("#profilePhotoFileUpload")[0];
 		if (fileUploadControl.files.length > 0) {
@@ -514,3 +518,70 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 	  }
 	});
 })
+
+
+
+
+//login
+//{"phone":"18055554123","password":"123"}
+AV.Cloud.define("login", function(request, response) {
+
+	 var phone = request.params.phone;
+	  var password = request.params.password;
+
+	  if(phone==='' || password==='' || phone === null || password=== null) response.error("param is null when query guys InOneUmberCount.");
+		
+
+	  AV.User.logInWithMobilePhone(phone, password).then(function(user){
+		 response.success("success");
+	  }, function(err){
+		 response.error("faile");
+	  });
+
+}
+
+
+
+
+//sendVerifyCode
+//{"phone":"18058167549"}
+AV.Cloud.define("sendVerifyCode", function(request, response) {
+
+	  var phone = request.params.phone;
+	 if(phone==='' || phone === null ) response.error("param is null when query guys sendVerifyCode.");
+	  
+	  AV.User.requestMobilePhoneVerify(phone).then(function(){
+			//发送成功
+			response.success(results);
+		}, function(err){
+		   //发送失败
+		   response.success(err);
+		});
+
+}
+
+
+
+//handleVerifyCode
+//{"code":"883769"}
+AV.Cloud.define("handleVerifyCode", function(request, response) {
+     var code = request.params.code;
+	 if(code==='' || code === null ) response.error("param is null when query guys handleVerifyCode.");
+
+	  AV.User.verifyMobilePhone(code).then(function(){
+        //验证成功
+		response.success("success");
+    }, function(err){
+       //验证失败
+	   response.success(err);
+    });
+
+}
+
+
+
+//logout
+//{"code":"883769"}
+AV.Cloud.define("logOut", function(request, response) {
+     AV.User.logOut();
+}
