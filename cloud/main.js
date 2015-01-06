@@ -228,7 +228,7 @@ AV.Cloud.define("modifyEndLocation", function(request, response) {
 
 
 // agree a request   
-// todo: implement again  {"userId":"lee","toUserId":"spring"}
+//  {"userId":"lee","toUserId":"spring"}
 AV.Cloud.define("agreeRequest", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
@@ -324,7 +324,6 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 
 
 // find the ones who request yourself 
-// todo: implement again
 //{"userId":"spring","fromUserCount":0,"pageSize":1}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
  var toUserId = request.params.userId;
@@ -347,7 +346,7 @@ AV.Cloud.define("queryRequestToMeList", function(request, response) {
 
 
 // find the ones who I sent request 
-// todo: implement again   {"userId":"spring","toUserId":"girl"}
+//  {"userId":"spring","toUserId":"girl"}
 AV.Cloud.define("queryMyRequestList", function(request, response) {
  var fromUserId = request.params.userId;
  if(fromUserId==='' || fromUserId === null ) response.error("param is null when queryMyRequestList.");
@@ -363,40 +362,6 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 });
 })
 
-
-
-// find the current ones who finish register
-// todo: implement again
-AV.Cloud.define("finishRegister", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.first({
-    success: function(result) {
-        response.success(result);
-
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
-})
-
-
-// find the current ones who finish login
-// todo: implement again
-AV.Cloud.define("finishlogin", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.first({
-    success: function(result) {
-        response.success(result);
-
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
-})
 
 
 
@@ -584,4 +549,70 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 //{"code":"883769"}
 AV.Cloud.define("logOut", function(request, response) {
      AV.User.logOut();
+}
+
+
+
+//list detail
+//{"userId":"54a2c310e4b06eb20392b984"}
+AV.Cloud.define("showDetail", function(request, response) {
+	 
+	 //当前用户id
+    var userId = request.params.userId;
+
+	if(userId==='' || userId === null ) response.error("param is null when query showDetail.");
+    var _User = AV.Object.extend('_User');
+    query = new AV.Query(_User);
+    query.equalTo("objectId", userId);
+  
+    query.first({
+    success: function(result) {
+       response.success(result);
+    },
+    error: function(error) {
+      response.error("Error " + error.code + " : " + error.message + " when query showDetail");
+    }
+  });
+}
+
+
+
+//update my detail
+//{"userId":"54a2c310e4b06eb20392b984","username":"boy77","password":"456","gender":"0","signature":"fuck me"}
+AV.Cloud.define("updateMyDetail", function(request, response) {
+	 
+	 //当前用户id
+    var userId = request.params.userId;
+
+	if(userId==='' || userId === null ) response.error("param is null when query showDetail.");
+    var _User = AV.Object.extend('_User');
+    query = new AV.Query(_User);
+    query.equalTo("objectId", userId);
+  
+    query.first({
+    success: function(result) {
+       //update
+	  var username = request.params.username;
+	  var password = request.params.password;
+	  var gender = request.params.gender;
+	  var signature = request.params.signature;
+	  
+	  result.set("username",username);
+	  result.set("password",password);
+	  result.set("gender",gender);
+	  result.set("signature",signature);
+	  result.save(null, {
+		  success: function(result) {
+			response.success(result);
+
+		  },
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+    },
+    error: function(error) {
+      response.error("Error " + error.code + " : " + error.message + " when updateMyDetail");
+    }
+  });
 }
