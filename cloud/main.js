@@ -1,6 +1,8 @@
 
 // count of contribution  :取正在共伞的数量  done
-AV.Cloud.define("InOneUmberCount", function(request, response) {
+//{"status":"3"}
+// status 的状态：1	请求，2	拒绝，3	接受，7	暗恋
+AV.Cloud.define("getRelationCountByStatus", function(request, response) {
   var Relationship = AV.Object.extend('Relationship');
   query = new AV.Query(Relationship);
   query.equalTo("isActive", true);
@@ -12,7 +14,7 @@ AV.Cloud.define("InOneUmberCount", function(request, response) {
 
     },
     error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys InOneUmberCount.");
+      response.error("Error " + error.code + " : " + error.message + " when query guys getRelationCountByStatus.");
     }
   });
 });
@@ -22,13 +24,13 @@ AV.Cloud.define("InOneUmberCount", function(request, response) {
 
 
 // 发一个请求  done, 
-// 
+// {"userId":"spring","toUserId":"girl"}
 AV.Cloud.define("requestToSomeone", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
     var toUserId = request.params.toUserId;
 
-	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query guys InOneUmberCount.");
+	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query guys requestToSomeone.");
     var Relationship = AV.Object.extend('Relationship');
     query = new AV.Query(Relationship);
     query.equalTo("fromUser", fromUserId);
@@ -98,7 +100,7 @@ AV.Cloud.define("cancelRequest", function(request, response) {
       success: function(result) {
                  if (result) {
                     result.destroy({
-                  success: function(result) {
+                    success: function(result) {
                     // The object was deleted from the AV Cloud.
                     response.success("success");
                   },
@@ -162,7 +164,7 @@ AV.Cloud.define("rejectRequest", function(request, response) {
         }else{
 		  
           //or update
-          result.set("isActive",true);
+          result.set("isActive",false);
 		  result.set("status",2);
           result.save(null, {
               success: function(result) {
@@ -187,7 +189,8 @@ AV.Cloud.define("rejectRequest", function(request, response) {
 // 可以修改目的地  done  {"userObjectId":"5492e9f6e4b0bf53d4dbc1fb","latitude":1,"longitude":1}
 AV.Cloud.define("modifyEndLocation", function(request, response) {
      //当前用户id
-    var fromUserObjectId = request.params.userObjectId;
+    //var fromUserObjectId = request.params.userObjectId;
+	var fromUserObjectId = AV.User.current().get("objectId");
 	//目的地
     var latitude = request.params.latitude;
 	var longitude = request.params.longitude;
@@ -246,26 +249,9 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 	
 	query.first({
     success: function(result) {
-        //already exist, do nothing;  
-        if(!result){
-            var relationship = new Relationship();
-
-            relationship.set("fromUser",fromUserId);
-            relationship.set("toUser",toUserId);
-            relationship.set("isActive",true);
-            relationship.set("status",3);
-             relationship.save(null, {
-              success: function(relationship) {
-                response.success("success");
-
-              },
-              error: function(relationship, error) {
-                response.error("Error " + error.code + " : " + error.message + " when save.");
-              }
-            });
-        }else{
-		  
-          //or update
+        //already exist 
+        if(result){
+          // update
           result.set("isActive",true);
 		  result.set("status",3);
           result.save(null, {
@@ -324,13 +310,14 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 
 
 // find the ones who request yourself 
-//{"userId":"spring","fromUserCount":0,"pageSize":1}
+//{"userId":"spring","fromUserNum":0,"count":1}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
- var toUserId = request.params.userId;
- var fromUserCount = request.params.fromUserCount;
- var pageSize = request.params.pageSize;
- if(toUserId==='' || toUserId === null ) response.error("param is null when queryMyRequestList.");
- AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,fromUserCount,pageSize],
+ //var toUserId = request.params.userId;
+ var toUserId = AV.User.current().get("objectId");
+ var fromUserNum = request.params.fromUserNum;
+ var count = request.params.count;
+ if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
+ AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,fromUserNum,count],
  {
   success: function(result){
      response.success(result);
@@ -348,7 +335,8 @@ AV.Cloud.define("queryRequestToMeList", function(request, response) {
 // find the ones who I sent request 
 //  {"userId":"spring","toUserId":"girl"}
 AV.Cloud.define("queryMyRequestList", function(request, response) {
- var fromUserId = request.params.userId;
+ //var fromUserId = request.params.userId;
+ var fromUserId = AV.User.current().get("objectId");
  if(fromUserId==='' || fromUserId === null ) response.error("param is null when queryMyRequestList.");
  AV.Query.doCloudQuery('select * from _User where username = (select toUser from Relationship where fromUser=? and status=1 )',[fromUserId],
  {
