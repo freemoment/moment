@@ -6,7 +6,7 @@ AV.Cloud.define("getRelationCountByStatus", function(request, response) {
   var Relationship = AV.Object.extend('Relationship');
   query = new AV.Query(Relationship);
   query.equalTo("isActive", true);
-    query.equalTo("status", request.params.status);
+  query.equalTo("status", request.params.status);
   query.count({
     success: function(count) {
   
@@ -49,7 +49,8 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
             relationship.set("status",1);
              relationship.save(null, {
               success: function(relationship) {
-                response.success("success");
+                var finalResult = {'code':200,'results':success};
+				response.success(finalResult);
 
               },
               error: function(relationship, error) {
@@ -310,17 +311,18 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 
 
 // find the ones who request yourself 
-//{"userId":"spring","fromUserNum":0,"count":1}
+//{"userId":"spring","offset":0,"count":1}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
  //var toUserId = request.params.userId;
  var toUserId = AV.User.current().get("objectId");
- var fromUserNum = request.params.fromUserNum;
+ var offset = request.params.offset;
  var count = request.params.count;
  if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
- AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,fromUserNum,count],
+ AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,offset,count],
  {
   success: function(result){
-     response.success(result);
+     var finalResult = {'code':200,'results':result};
+	response.success(finalResult);
   },
   error: function(error){
     //查询失败，查看 error
@@ -333,7 +335,7 @@ AV.Cloud.define("queryRequestToMeList", function(request, response) {
 
 
 // find the ones who I sent request 
-//  {"userId":"spring","toUserId":"girl"}
+//  {"userId":"spring"}
 AV.Cloud.define("queryMyRequestList", function(request, response) {
  //var fromUserId = request.params.userId;
  var fromUserId = AV.User.current().get("objectId");
@@ -341,7 +343,8 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
  AV.Query.doCloudQuery('select * from _User where username = (select toUser from Relationship where fromUser=? and status=1 )',[fromUserId],
  {
   success: function(result){
-     response.success(result);
+     var finalResult = {'code':200,'results':result};
+	 response.success(finalResult);
   },
   error: function(error){
     //查询失败，查看 error
@@ -401,7 +404,8 @@ AV.Cloud.define("regesterTest", function(request, response) {
 			//query.first
 			user.save(null,{
 			  success: function(results) {
-				  response.success(results);
+				  var finalResult = {'code':200,'results':results};
+				  response.success(finalResult);
 			  },
 			  error: function(error) {
 				response.error("Error ");
@@ -447,12 +451,13 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 
 		  var avFile = new AV.File(name, file);
 		  avFile.save().then(function(restult) {
-			  // the object was saved successfully.
+			    //the object was saved successfully.
 				user.set("image",restult);
 				//query.first
 				user.save(null,{
 				  success: function(results) {
-					  response.success(results);
+					  var finalResult = {'code':200,'results':results};
+					  response.success(finalResult);
 				  },
 				  error: function(error) {
 					response.error("Error ");
@@ -486,7 +491,8 @@ AV.Cloud.define("login", function(request, response) {
 		
 
 	  AV.User.logInWithMobilePhone(phone, password).then(function(user){
-		 response.success("success");
+		 var finalResult = {'code':200,'results':success};
+	     response.success(finalResult);
 	  }, function(err){
 		 response.error("faile");
 	  });
@@ -505,7 +511,8 @@ AV.Cloud.define("sendVerifyCode", function(request, response) {
 	  
 	  AV.User.requestMobilePhoneVerify(phone).then(function(){
 			//发送成功
-			response.success(results);
+		   var finalResult = {'code':200,'results':success};
+	       response.success(finalResult);
 		}, function(err){
 		   //发送失败
 		   response.success(err);
@@ -523,7 +530,8 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 
 	  AV.User.verifyMobilePhone(code).then(function(){
         //验证成功
-		response.success("success");
+		var finalResult = {'code':200,'results':success};
+	    response.success(finalResult);
     }, function(err){
        //验证失败
 	   response.success(err);
@@ -555,7 +563,8 @@ AV.Cloud.define("showDetail", function(request, response) {
   
     query.first({
     success: function(result) {
-       response.success(result);
+       var finalResult = {'code':200,'results':result};
+	   response.success(finalResult);
     },
     error: function(error) {
       response.error("Error " + error.code + " : " + error.message + " when query showDetail");
@@ -604,3 +613,238 @@ AV.Cloud.define("updateMyDetail", function(request, response) {
     }
   });
 }
+
+
+
+//checkUserName
+//{"username":"kitty"}
+AV.Cloud.define("checkUserName", function(request, response) {
+	 
+	var username = request.params.username;
+
+	if(username==='' || username === null ) response.error("param is null when checkUserName.");
+
+	var _User = AV.Object.extend("_User");
+	var _User = new AV.Query(_User);
+
+	_User.equalTo("username",username);
+
+	_User.count( {
+	  success: function(user) {
+	       var finalResult = {'code':200,'results':user};
+	       response.success(finalResult);
+	  },
+	  error: function(user, error) {
+		response.error("Error " + error.code + " : " + error.message + " when save.");
+	  }
+	});
+	 
+}
+
+
+
+// save location
+// {"username":"kitty","startLatitude":1,"startLongitude":1,"endLatitude":2,"endLongitude":2}
+AV.Cloud.define("saveRoute", function(request, response) {
+    //当前用户id
+    var username = request.params.username;
+	// start
+	var startLatitude = request.params.startLatitude;
+	var startLongitude = request.params.startLongitude;
+	// end
+	var endLatitude = request.params.endLatitude;
+	var endLongitude = request.params.endLongitude;
+    
+	if(startLatitude==='' || startLatitude === null ) response.error("startLatitude is null ");
+	if(startLongitude==='' || startLongitude === null ) response.error("startLongitude is null ");
+	if(endLatitude==='' || endLatitude === null ) response.error("endLatitude is null ");
+	if(endLongitude==='' || endLongitude === null ) response.error("endLongitude is null ");
+	if(username==='' || username === null ) response.error("username is null ");
+    
+    var point = new AV.GeoPoint(startLatitude, startLongitude);
+	var endPoint = new AV.GeoPoint(endLatitude, endLongitude);
+	
+	var Route = AV.Object.extend("Route");
+    query = new AV.Query("Route");
+	
+	var _User = AV.Object.extend("_User");
+    user = new AV.Query("_User");
+
+    user.equalTo("username",username);
+	user.first( {
+	  success: function(user) {
+	       query.equalTo("user",user);
+	       query.first({
+			success: function(result) {
+				//not exist, insert;  
+				if(!result){
+					var Route = AV.Object.extend("Route");
+					var route = new Route();
+					route.set("start", point);
+					//route.set("end", endPoint);
+					
+					 route.set("user",user);
+					 route.save(null, {
+					  success: function(result) {
+						result.set("end", endPoint);
+						result.save(null, {
+						  success: function(result) {
+							var finalResult = {'code':200,'results':result};
+							response.success(finalResult);
+
+						  },
+						  error: function(result, error) {
+							response.error("Error " + error.code + " : " + error.message + " when save.");
+						  }
+						});
+
+					  },
+					  error: function(result, error) {
+						response.error("Error " + error.code + " : " + error.message + " when save.");
+					  }
+					});
+				}else{
+				  
+				    //or update
+					result.set("start", point);
+					//result.set("end", endPoint);
+				    result.save(null, {
+					  success: function(result) {
+						result.set("end", endPoint);
+						result.save(null, {
+						  success: function(result) {
+							var finalResult = {'code':200,'results':result};
+							response.success(finalResult);
+
+						  },
+						  error: function(result, error) {
+							response.error("Error " + error.code + " : " + error.message + " when save.");
+						  }
+						});
+
+					  },
+					  error: function(result, error) {
+						response.error("Error " + error.code + " : " + error.message + " when update.");
+					  }
+					});
+				}
+			},
+			error: function(error) {
+			  response.error("Error " + error.code + " : " + error.message + " when query guys saveRoute.");
+			}
+		  });
+	  },
+	  error: function(user, error) {
+		response.error("Error " + error.code + " : " + error.message + " when user find.");
+	  }
+	});
+
+});
+
+
+
+
+
+// save location
+// {"username":"kitty","latitude":1,"longitude":1}
+AV.Cloud.define("saveCurrentAddress", function(request, response) {
+    //当前用户id
+    var username = request.params.username;
+	// start
+	var latitude = request.params.latitude;
+	var longitude = request.params.longitude;
+    
+	if(latitude==='' || latitude === null ) response.error("latitude is null ");
+	if(longitude==='' || longitude === null ) response.error("longitude is null ");
+	if(username==='' || username === null ) response.error("username is null ");
+    
+    var point = new AV.GeoPoint(latitude, longitude);
+	var Location = AV.Object.extend("Location");
+    query = new AV.Query("Location");
+	
+	var _User = AV.Object.extend("_User");
+    user = new AV.Query("_User");
+
+    user.equalTo("username",username);
+	user.first( {
+	  success: function(user) {
+	       query.equalTo("user",user);
+	       query.first({
+			success: function(result) {
+				//not exist, insert;  
+				if(!result){
+					var Location = AV.Object.extend("Location");
+					var location = new Location();
+					location.set("point", point);
+					
+					 location.set("user",user);
+					 location.save(null, {
+					  success: function(result) {
+						var finalResult = {'code':200,'results':result};
+						response.success(finalResult);
+					  },
+					  error: function(result, error) {
+						response.error("Error " + error.code + " : " + error.message + " when save.");
+					  }
+					});
+				}else{
+				  
+				    //or update
+					result.set("point", point);
+				    result.save(null, {
+					  success: function(result) {
+						var finalResult = {'code':200,'results':result};
+						response.success(finalResult);
+						},
+					  error: function(result, error) {
+						response.error("Error " + error.code + " : " + error.message + " when update.");
+					  }
+					});
+				}
+			},
+			error: function(error) {
+			  response.error("Error " + error.code + " : " + error.message + " when query guys saveaddress.");
+			}
+		  });
+	  },
+	  error: function(user, error) {
+		response.error("Error " + error.code + " : " + error.message + " when user find.");
+	  }
+	});
+
+});
+
+
+
+// save current location
+// {"username":"kitty","isContributor":true}
+AV.Cloud.define("switchIsContributor", function(request, response) {
+  var username = request.params.username;
+  var isContributor = request.params.isContributor;
+  if(isContributor==='' || isContributor === null ) response.error("isContributor is null ");
+  if(username==='' || username === null ) response.error("username is null ");
+
+  var _User = AV.Object.extend("_User");
+  query = new AV.Query("_User");
+  query.equalTo("username",username);
+  query.first({
+  success: function(result) {
+    //or update
+	result.set("isContributor", isContributor);
+	result.save(null, {
+	  success: function(userResult) {
+		var finalResult = {'code':200,'results':userResult};
+	    response.success(finalResult);
+		},
+	  error: function(result, error) {
+		response.error("Error " + error.code + " : " + error.message + " when update.");
+	  }
+	});
+      
+  },
+  error: function(error) {
+    response.error("Error ");
+  }
+});
+});
+
