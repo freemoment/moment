@@ -542,9 +542,40 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 
 
 //logout
-//{"code":"883769"}
+//{"userId":"54903e39e4b0e5bf1286f33c"}
 AV.Cloud.define("logOut", function(request, response) {
-     AV.User.logOut();
+     //当前用户id
+    var userId = request.params.userId;
+
+	if(userId==='' || userId === null ) response.error("param is null when query logOut.");
+    var _User = AV.Object.extend('_User');
+    query = new AV.Query(_User);
+    query.equalTo("objectId", userId);
+  
+    query.first({
+    success: function(result) {
+       //update
+	  var online = request.params.online;
+	 
+	  result.set("online",false);
+	  result.save(null, {
+		  success: function(result) {
+		  //logout
+		  AV.User.logOut();
+		  var finalResult = {'code':200,'results':'success'};
+	      response.success(finalResult);
+
+		  },
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+    },
+    error: function(error) {
+      response.error("Error " + error.code + " : " + error.message + " when find user for logout");
+    }
+  });
+     
 }
 
 
@@ -600,7 +631,8 @@ AV.Cloud.define("updateMyDetail", function(request, response) {
 	  result.set("signature",signature);
 	  result.save(null, {
 		  success: function(result) {
-			response.success(result);
+		   var finalResult = {'code':200,'results':'success'};
+	       response.success(finalResult);
 
 		  },
 		  error: function(result, error) {
