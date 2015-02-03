@@ -278,17 +278,89 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 // find the ones who have umber  
 // todo: implement again
 AV.Cloud.define("queryUmberOnes", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.find({
-    success: function(result) {
-        response.success(result);
+	var longitude = request.params.longitude;
+	var latitude = request.params.latitude;
+	if(longitude==='' || longitude === null || latitude==='' || latitude === null ) response.error("param is null when queryUmberOnes.");
+	// User's  currentlocation
+	var userGeoPoint = new AV.GeoPoint(latitude,longitude)
+	// Create a query for places
+	var Location = AV.Object.extend('Location');
+	var queryLocation = new AV.Query(Location);
 
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
+	// Limit what could be a lot of points.
+	queryLocation.limit(50);
+    queryLocation.include("user");
+	// Interested in locations near user.
+	queryLocation.near("point", userGeoPoint);
+	queryLocation.find({
+		success: function(result) {
+		  // 起点小于300的  
+		  var arrayObjForStart = new Array();
+		  for (var i = 0; i < result.length; i++) {
+		      //读取坐标
+		      var distance ="";
+		      var currentPoint = result[i].get("point");
+			  distance = userGeoPoint.kilometersTo(currentPoint)
+			  if(distance < 300){
+			    //小于300的，加入集合
+				arrayObjForStart.push(result[i].get("user").id);
+			  }
+		    }
+			var Route = AV.Object.extend('Route');
+			var queryRoute = new AV.Query(Route);
+			queryRoute.containedIn("userId",arrayObjForStart);
+			queryRoute.find({
+				success: function(resultRoute) {
+				     // 终点小于300的  
+					 var arrayObjForEnd = new Array();
+					  for (var i = 0; i < resultRoute.length; i++) {
+					      //读取坐标
+					      var distance ="";
+					      var endPoint = resultRoute[i].get("end");
+						  distance = userGeoPoint.kilometersTo(endPoint)
+						  if(distance < 300){
+						  //小于300的，加入集合
+						  arrayObjForEnd.push(resultRoute[i].get("userId"));
+						  }
+					    }
+					
+					var _User = AV.Object.extend('_User');
+					var queryUser = new AV.Query(_User);
+					queryUser.containedIn("objectId",arrayObjForEnd);
+					queryUser.include("Location");
+					queryUser.include("image");
+					queryUser.include("installation");
+					queryUser.limit(20);
+					queryUser.find({
+						success: function(resultUser) {
+						    //计算和每个用户的距离
+							for (var i = 0; i < resultUser.length; i++) {
+							  //读取坐标
+							  var distance ="";
+							  var currentLocation = resultUser[i].get("Location").get("point");
+							  //获取距离
+							  distance = userGeoPoint.kilometersTo(currentLocation)
+							  
+							  resultUser[i].add("distance", distance)
+							  
+							}
+							var finalResult = {'code':200,'results':resultUser};
+							response.success(finalResult);
+						},
+						error: function(error) {
+							response.error("Error " + error.code + " : " + error.message + " when query user in xxx.");
+						}
+					});
+				},
+				error: function(error) {
+					response.error("Error " + error.code + " : " + error.message + " when query Route in xxx.");
+				}
+			});
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when queryLocation guys queryUmberOnes.");
+		}
+	});
 });
 
 
@@ -355,23 +427,6 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 
 
 
-
-
-// request some one's desc
-// todo: implement again
-AV.Cloud.define("queryDescForUserName", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.first({
-    success: function(result) {
-        response.success(result);
-
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
-})
 
 
 
