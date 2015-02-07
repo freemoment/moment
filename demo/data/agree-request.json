@@ -1,0 +1,12 @@
+{
+    "code": 200,
+    "results": {
+        "toUser": "spring",
+        "status": 3,
+        "isActive": true,
+        "fromUser": "lee",
+        "objectId": "54903738e4b094fb5455a477",
+        "createdAt": "2014-12-16T13:44:24.888Z",
+        "updatedAt": "2015-01-29T14:56:47.537Z"
+    }
+}

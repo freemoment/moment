@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/widget/refresh/refresh.default.css" />
+
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1421588979_2148175.css"/>
+    
+    <link rel="stylesheet" type="text/css" href="style/css/widget/slider/slider.css"/>
+    <link rel="stylesheet" type="text/css" href="style/css/widget/slider/slider.default.css"/>
+    
+
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/touch.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/matchMedia.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/event.ortchange.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/parseTpl.js"></script>
+
+    <script type="text/javascript" src="style/js/gmu/core/gmu.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/event.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/widget.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/throttle.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/refresh/refresh.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/refresh/$iOS5.js"></script>   <!--iOS5插件上下滑动插件-->
+
+
+
+    <script type="text/javascript" src="style/js/gmu/widget/slider/slider.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/arrow.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/dots.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$touch.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$autoplay.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$lazyloadimg.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/imgzoom.js"></script>
+</head>
+<body>
+<div class="home-page">
+    <header>
+        <a transition="slide" href="index.html" class="btn-back">
+            <i class="iconfont icon-arrow-small-left"></i>
+        </a>
+        <div class="home-page-text">
+            一起走
+        </div>
+        <!--<div class="home-page-searchbar">
+            <input type="text" id="start-address" />
+        </div>
+        <button id="start-button">确定</button>-->
+    </header>
+    <div class="slider-list" id="sliderList">
+    </div>
+    <div class="ui-refresh" id="refresh">
+        <ul class="data-list" id="dataList">
+        </ul>
+        <div class="ui-refresh-down"></div>
+    </div>
+
+    <script type="text/x-handlebars-template" id="list-tpl">
+        <li>
+            <img src="<%=image.name%>"/>
+            <dl>
+                <dt><%=username%> <button class="ui-button ui-button-green ui-button-m" data-id="<%=username%>">邀请</button></dt>
+                <dd class="content"><span class="age"><i class="iconfont icon-<%=genderString%>"></i></span> <span><%=distanceString%> km</span></dd>
+                <dd class="source">有智慧的人总是把嘴巴放在心里，而愚昧之人反而把心放在嘴里。</dd>
+            </dl>
+        </li>
+    </script>
+
+    <script type="text/x-handlebars-template" id="slider-tpl">
+        <li>
+            <img src="<%=image.name%>"/>
+            <dl>
+                <dt><%=username%> <button class="ui-button ui-button-red ui-button-m" data-id="<%=username%>">同意</button></dt>
+                <dd class="content"><span class="age"><i class="iconfont icon-<%=genderString%>"></i></span> <span><%=distanceString%> km</span></dd>
+            </dl>
+        </li>
+    </script>
+
+    <footer>
+        <nav class="toolbar toolbar-col2 util-clearfix">
+            <ul>
+                <li>
+                    <a href="javascript:;"><i class="iconfont icon-yusan"></i>一起走</a>
+                </li>
+                <li>
+                    <a href="myself.html"><i class="iconfont icon-lianxiren"></i>我的资料</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+</div>
+<script type="text/javascript">
+
+
+    (function(){
+        var myUserId = 'x',
+            dataListBox = $('#dataList'),
+            sliderListBox = $('#sliderList'),
+            refreshBox = $('#refresh'),
+            tpl = $('#list-tpl').html(),
+            sliderTpl = $('#slider-tpl').html();
+
+        function builderHtml( data, tpl ){
+            var items = [];
+            $(data).each(function(){
+                this.genderString = (this.gender==='0') ? 'w' : 'm';
+                this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
+                items.push( $.parseTpl(tpl, this) );
+            });
+            return items.join('');
+        }
+
+        function resetHeight(){
+            refreshBox.css('height', window.innerHeight - $('header').height() - sliderListBox.height() - $('footer').height() )
+        }
+
+
+        function getData( type, callback ){
+            var url = 'data/list.json?type='+type;
+            if( type === 'slide' ){
+                url = 'data/query-request-to-me-list.json?type='+type;
+            }
+            $.getJSON(url, function(remoteData){
+                if( remoteData.code === 200 && remoteData.results.length>0 ){
+                    callback( remoteData.results  );
+                }else{
+                    callback( []  );
+                }
+            });
+        }
+
+
+        var refresh = $('.ui-refresh').refresh({
+            load: function (dir, type) {
+                var me = this;
+                getData('list',function( data ){
+                    dataListBox[dir == 'up' ? 'prepend' : 'append']( builderHtml( data, tpl ));
+                    me.afterDataLoading();    //数据加载完成后改变状态
+                });
+            }
+        });
+
+        getData('list',function( data ){
+            dataListBox.html( builderHtml( data, tpl ));
+        });
+
+
+        function requestToMeList(){
+            getData('slider',function( data ){
+                if( data.length > 0 ){
+                    sliderListBox.show();
+                    sliderListBox.html( builderHtml( data, sliderTpl ));
+                    sliderListBox.slider();
+                    var dots = sliderListBox.find('.ui-slider-dots');
+                    dots.css('right',(sliderListBox.width() - dots.width())/2);
+                }else{
+                    sliderListBox.hide();
+                }
+                resetHeight();
+            });
+        }
+        requestToMeList();
+
+
+        sliderListBox.delegate('button[data-id]', 'click', function(e){
+            var button = $(e.target);
+            $.getJSON('data/agree-request.json?userId='+myUserId, function(remoteData){
+                if( remoteData.code === 200 && remoteData.results ){
+                    //requestToMeList();
+                    sliderListBox.hide();
+                    resetHeight();
+                    alert('进入聊天');
+                }
+            });
+        });
+
+
+
+        dataListBox.delegate('button[data-id]', 'click', function(e){
+            var button = $(e.target);
+            //已经在发送的就不处理了
+            if( button.attr('data-time') ){
+                return;
+            }
+            $.getJSON('data/request-to-someone.json?userId='+myUserId+'&toUserId='+button.data('id'), function(remoteData){
+                if( remoteData.code === 200 && remoteData.results ){
+                    button.attr('data-time',Date.now());
+                    timer();
+                }
+            });
+        });
+
+
+        var times = -1;
+        function timer(){
+            var now = Date.now();
+                buttons = dataListBox.find('button[data-time]'),
+                hasRequset = false;
+            buttons.removeClass('ui-button-green');
+            buttons.addClass('ui-button-red');
+            buttons.each(function(){
+                var btn = $(this),
+                    time = btn.attr('data-time'),
+                    s = Math.round( (now - time)/1000);
+                if( s > 120 ){
+                    btn.removeClass('ui-button-red');
+                    btn.addClass('ui-button-green');
+                    btn.removeAttr('data-time');
+                    btn.html('邀请');
+                }else{
+                    btn.html( (120 - s)+'s' );
+                    hasRequset = true;
+                }
+            });
+            if( hasRequset ){
+                try{ clearTimeout( times ); }catch(e){}
+                times = setTimeout(function(){
+                    timer();
+                },1000);
+            }
+        }
+        timer();
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1421588979_2148175.css"/>
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/gmu.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/event.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/widget.js"></script>
+</head>
+<body>
+<div class="page-status">
+
+    <div class="content-wrap">
+        <div class="content-inner">
+            <button data-rel="true" class="ui-button ui-button-green page-status-btn-up">有伞</button>
+            <button data-rel="false" class="ui-button ui-button-red page-status-btn-down">无伞</button>
+        </div>
+    </div>
+
+    <script>
+        $('button').on('click',function( e ){
+            var btn = $(e.target);
+            //btn.addClass('ui-button-green');
+
+            $.getJSON('data/status.json?type=', function(remoteData){
+                if( remoteData.code === 200 && remoteData.result.success ){
+                    location.href = "page-map.html";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
