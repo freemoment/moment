@@ -905,7 +905,7 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
 
 // save current location
 // {"username":"kitty","isContributor":true}
-AV.Cloud.define("switchIsContributor", function(request, response) {
+/*AV.Cloud.define("switchIsContributor", function(request, response) {
   var username = request.params.username;
   var isContributor = request.params.isContributor;
   if(isContributor==='' || isContributor === null ) response.error("isContributor is null ");
@@ -933,5 +933,5 @@ AV.Cloud.define("switchIsContributor", function(request, response) {
     response.error("Error ");
   }
 });
-});
+});*/
 
