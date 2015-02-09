@@ -26,7 +26,7 @@ AV.Cloud.define("getRelationCountByStatus", function(request, response) {
 // 发一个请求  done, 
 // {"userId":"spring","toUserId":"girl"}
 AV.Cloud.define("requestToSomeone", function(request, response) {
-    //当前用户id
+    // 当前用户id
     var fromUserId = request.params.userId;
     var toUserId = request.params.toUserId;
 
@@ -39,7 +39,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
   
     query.first({
     success: function(result) {
-        //already exist, do nothing;  
+        // already exist, do nothing;  
         if(!result){
             var relationship = new Relationship();
 
@@ -59,7 +59,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
             });
         }else{
 		  
-          //or update
+          // or update
           result.set("isActive",true);
           result.save(null, {
               success: function(result) {
@@ -480,7 +480,7 @@ AV.Cloud.define("regesterTest", function(request, response) {
 })
 
 
-// regester
+/*// regester
 //   {"phone":"15835267789","username":"kitty","password":"1234"}
 AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
@@ -905,7 +905,7 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
 
 // save current location
 // {"username":"kitty","isContributor":true}
-/*AV.Cloud.define("switchIsContributor", function(request, response) {
+AV.Cloud.define("switchIsContributor", function(request, response) {
   var username = request.params.username;
   var isContributor = request.params.isContributor;
   if(isContributor==='' || isContributor === null ) response.error("isContributor is null ");
@@ -916,7 +916,7 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
   query.equalTo("username",username);
   query.first({
   success: function(result) {
-    //or update
+    // or update
 	result.set("isContributor", isContributor);
 	result.save(null, {
 	  success: function(userResult) {
@@ -933,5 +933,5 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
     response.error("Error ");
   }
 });
-});*/
-
+});
+*/
