@@ -552,7 +552,7 @@ AV.Cloud.define("login", function(request, response) {
 		 response.error("faile");
 	  });
 
-}
+})
 
 
 
