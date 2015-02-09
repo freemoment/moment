@@ -556,7 +556,7 @@ AV.Cloud.define("login", function(request, response) {
 
 
 
-/*
+
 //sendVerifyCode
 //{"phone":"18058167549"}
 AV.Cloud.define("sendVerifyCode", function(request, response) {
@@ -573,7 +573,7 @@ AV.Cloud.define("sendVerifyCode", function(request, response) {
 		   response.success(err);
 		});
 
-}
+})
 
 
 
@@ -592,7 +592,7 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 	   response.success(err);
     });
 
-}
+})
 
 
 
@@ -631,7 +631,7 @@ AV.Cloud.define("logOut", function(request, response) {
     }
   });
      
-}
+})
 
 
 
@@ -656,10 +656,10 @@ AV.Cloud.define("showDetail", function(request, response) {
       response.error("Error " + error.code + " : " + error.message + " when query showDetail");
     }
   });
-}
+})
 
 
-
+/*
 //update my detail
 //{"userId":"54a2c310e4b06eb20392b984","username":"boy77","password":"456","gender":"0","signature":"fuck me"}
 AV.Cloud.define("updateMyDetail", function(request, response) {
