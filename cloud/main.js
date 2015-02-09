@@ -659,7 +659,7 @@ AV.Cloud.define("showDetail", function(request, response) {
 })
 
 
-/*
+
 //update my detail
 //{"userId":"54a2c310e4b06eb20392b984","username":"boy77","password":"456","gender":"0","signature":"fuck me"}
 AV.Cloud.define("updateMyDetail", function(request, response) {
@@ -699,7 +699,7 @@ AV.Cloud.define("updateMyDetail", function(request, response) {
       response.error("Error " + error.code + " : " + error.message + " when updateMyDetail");
     }
   });
-}
+})
 
 
 
@@ -726,7 +726,7 @@ AV.Cloud.define("checkUserName", function(request, response) {
 	  }
 	});
 	 
-}
+})
 
 
 
@@ -915,23 +915,23 @@ AV.Cloud.define("switchIsContributor", function(request, response) {
   query = new AV.Query("_User");
   query.equalTo("username",username);
   query.first({
-  success: function(result) {
-    // or update
-	result.set("isContributor", isContributor);
-	result.save(null, {
-	  success: function(userResult) {
-		var finalResult = {'code':200,'results':userResult};
-	    response.success(finalResult);
-		},
-	  error: function(result, error) {
-		response.error("Error " + error.code + " : " + error.message + " when update.");
+	  success: function(result) {
+	    // or update
+		result.set("isContributor", isContributor);
+		result.save(null, {
+		  success: function(userResult) {
+			var finalResult = {'code':200,'results':userResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+	      
+	  },
+	  error: function(error) {
+	    response.error("Error ");
 	  }
 	});
-      
-  },
-  error: function(error) {
-    response.error("Error ");
-  }
 });
-});
-*/
+
