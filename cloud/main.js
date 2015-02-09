@@ -480,7 +480,7 @@ AV.Cloud.define("regesterTest", function(request, response) {
 })
 
 
-// regester
+/*// regester
 //   {"phone":"15835267789","username":"kitty","password":"1234"}
 AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
@@ -699,11 +699,11 @@ AV.Cloud.define("updateMyDetail", function(request, response) {
       response.error("Error " + error.code + " : " + error.message + " when updateMyDetail");
     }
   });
-}
+}*/
 
 
 
-/*//checkUserName
+//checkUserName
 //{"username":"kitty"}
 AV.Cloud.define("checkUserName", function(request, response) {
 	 
@@ -933,5 +933,5 @@ AV.Cloud.define("switchIsContributor", function(request, response) {
     response.error("Error ");
   }
 });
-});*/
+});
 
