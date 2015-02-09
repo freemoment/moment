@@ -535,7 +535,7 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 
 
 
-/*//login
+//login
 //{"phone":"18055554123","password":"123"}
 AV.Cloud.define("login", function(request, response) {
 
@@ -556,7 +556,7 @@ AV.Cloud.define("login", function(request, response) {
 
 
 
-
+/*
 //sendVerifyCode
 //{"phone":"18058167549"}
 AV.Cloud.define("sendVerifyCode", function(request, response) {
