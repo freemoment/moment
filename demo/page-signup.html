@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css"/>
+    <link rel="stylesheet" type="text/css" href="style/css/main.css"/>
+    <link rel="stylesheet" type="text/css" href="style/css/transition.min.css"/>
+
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1420300224_9331315.css"/>
+
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+    <script type="text/javascript" src="style/js/transition.min.js"></script>
+</head>
+<body class="page-signup">
+    <div id="page-username" data-role="page">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <input type="text" id="username" placeholder="用户名"/>
+                <a data-validator="username" transition="slide" class="next-button" href="#page-avatar">Next</a>
+            </div>
+        </div>
+    </div>
+    <div id="page-avatar" data-role="page" data-title="用户头像">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <input type="file" id="avatar" placeholder="头像"/>
+                <a data-validator="avatar" transition="slide" class="next-button" href="#page-mobile">Next</a>
+            </div>
+        </div>
+    </div>
+    <div id="page-mobile" data-role="page" data-title="手机号">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <input type="text" id="mobile" placeholder="手机号"/>
+                <input type="password" id="password" placeholder="密码"/>
+                <a data-validator="mobile" transition="slide" class="next-button" href="#page-verification">Next</a>
+            </div>
+        </div>
+    </div>
+    <div id="page-verification" data-role="page" data-title="手机验证">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <input type="text" id="verification-code" placeholder="验证码"/>
+                <a data-validator="verification-code" transition="slide" class="next-button" href="#page-signup-successful">Next</a>
+            </div>
+        </div>
+    </div>
+    <div id="page-signup-successful" data-role="page" data-title="注册成功">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <h1>Successful!</h1>
+                <button class="next-button">Next</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        $('[data-role="page"] [data-validator]').on('click',function( e ){
+            var elm = $(e.target),
+                type = elm.data('validator');
+            $.getJSON('data/signup.json?type='+type, function(remoteData){
+                if( remoteData.code === 200 && remoteData.result.success ){
+                    var href = elm.attr('href');
+                    if( href.indexOf('#') === 0 ){
+                        location.hash = href;
+                    }else{
+                        location.href = href;
+                    }
+                }
+            });
+            e.stopPropagation();
+            return false;
+        });
+        $('#page-signup-successful button').on('click',function(e){
+            location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
