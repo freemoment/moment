@@ -385,8 +385,8 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 // find the ones who request yourself 
 //{"userId":"spring","offset":0,"count":1}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
- //var toUserId = request.params.userId;
- var toUserId = AV.User.current().get("objectId");
+ var toUserId = request.params.userId;
+ //var toUserId = AV.User.current().get("objectId");
  var offset = request.params.offset;
  var count = request.params.count;
  if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
@@ -409,8 +409,8 @@ AV.Cloud.define("queryRequestToMeList", function(request, response) {
 // find the ones who I sent request 
 //  {"userId":"spring"}
 AV.Cloud.define("queryMyRequestList", function(request, response) {
- //var fromUserId = request.params.userId;
- var fromUserId = AV.User.current().get("objectId");
+ var fromUserId = request.params.userId;
+ //var fromUserId = AV.User.current().get("objectId");
  if(fromUserId==='' || fromUserId === null ) response.error("param is null when queryMyRequestList.");
  AV.Query.doCloudQuery('select * from _User where username = (select toUser from Relationship where fromUser=? and status=1 )',[fromUserId],
  {
