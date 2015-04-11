@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/widget/refresh/refresh.default.css" />
+
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1421588979_2148175.css"/>
+
+    <link rel="stylesheet" type="text/css" href="style/css/widget/slider/slider.css"/>
+    <link rel="stylesheet" type="text/css" href="style/css/widget/slider/slider.default.css"/>
+
+
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/touch.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/matchMedia.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/event.ortchange.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/parseTpl.js"></script>
+
+    <script type="text/javascript" src="style/js/gmu/core/gmu.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/event.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/widget.js"></script>
+    <script type="text/javascript" src="style/js/gmu/extend/throttle.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/refresh/refresh.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/refresh/$iOS5.js"></script>   <!--iOS5插件上下滑动插件-->
+
+
+
+    <script type="text/javascript" src="style/js/gmu/widget/slider/slider.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/arrow.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/dots.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$touch.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$autoplay.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/$lazyloadimg.js"></script>
+    <script type="text/javascript" src="style/js/gmu/widget/slider/imgzoom.js"></script>
+</head>
+<body>
+<div class="home-page">
+    <header>
+        <a transition="slide" href="index.html" class="btn-back">
+            <i class="iconfont icon-arrow-small-left"></i>
+        </a>
+        <div class="home-page-text">
+            我的资料
+        </div>
+    </header>
+    <div class="ui-refresh" id="refresh">
+        <div class="user-info">
+            <div class="img-wrap">
+                <div class="img" style="background-image:url(avatar/1.jpg);">
+                </div>
+            </div>
+            <dl>
+                <dt><%=username%></dt>
+                <dd class="content"><span class="age"><i class="iconfont icon-<%=genderString%>"></i></span></dd>
+            </dl>
+        </div>
+    </div>
+    <footer>
+        <nav class="toolbar toolbar-col2 util-clearfix">
+            <ul>
+                <li>
+                    <a href="page-main.html"><i class="iconfont icon-yusan"></i>一起走</a>
+                </li>
+                <li>
+                    <a href="javascript:;"><i class="iconfont icon-lianxiren"></i>我的资料</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+</div>
+<script type="text/javascript">
+
+
+    (function(){
+        var myUserId = 'x',
+                dataListBox = $('#dataList'),
+                sliderListBox = $('#sliderList'),
+                refreshBox = $('#refresh'),
+                tpl = $('#list-tpl').html(),
+                sliderTpl = $('#slider-tpl').html();
+
+        function builderHtml( data, tpl ){
+            var items = [];
+            $(data).each(function(){
+                this.genderString = (this.gender==='0') ? 'w' : 'm';
+                this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
+                items.push( $.parseTpl(tpl, this) );
+            });
+            return items.join('');
+        }
+
+        function resetHeight(){
+            refreshBox.css('height', window.innerHeight - $('header').height() - sliderListBox.height() - $('footer').height() )
+        }
+
+        var refresh = $('.ui-refresh').refresh();
+        resetHeight();
+
+        $.getJSON('data/', function(remoteData){
+            if( remoteData.code === 200 && remoteData.results.length>0 ){
+                callback( remoteData.results  );
+            }else{
+                callback( []  );
+            }
+        });
+    })();
+</script>
+</body>
+</html>

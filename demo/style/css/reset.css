@@ -1,0 +1,116 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video, input  {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+html, body, form, fieldset, p, div, h1, h2, h3, h4, h5, h6 {
+    -webkit-text-size-adjust: none;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+
+body {
+    font-family: arial, sans-serif;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+blockquote, q {
+    quotes: none;
+}
+
+blockquote:before, blockquote:after, q:before, q:after {
+    content: '';
+    content: none;
+}
+
+ins {
+    text-decoration: none;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+
+
+/*
+ *@name : utility
+ *@description : CSS布局时常用的工具类.
+ *@require : 无
+ *@author : zhenyu.zhaozy@alibaba-inc.com
+ *@version : 1.0
+ *@modifyTime : 2012-07-27
+ *@structure : 无
+ */
+
+.util-left,
+.util-right {
+    display : inline;
+}
+
+.util-left {
+    float : left;
+}
+
+.util-right {
+    float : right;
+}
+
+/*
+ * 无额外标签的清楚浮动
+ */
+.util-clearfix:after {
+    visibility : hidden;
+    display : block;
+    height : 0;
+    font-size : 0;
+    content : '\0020';
+    clear : both;
+}
+
+.util-clearfix {
+    zoom : 1; /* for IE6 IE7 */
+}
+.ui-button{
+    border-radius: 5px;
+    border: none;
+    color: #fff;
+}
+.ui-button-green{
+    background-color: #55c379;
+}
+.ui-button-red{
+    background-color: #fb3136;
+}
+.ui-button-s{
+    padding:4px;
+    font-size: 12px;
+}
+.ui-button-m{
+    padding:6px;
+    font-size: 14px;
+}
+.ui-button-l{
+    padding:8px;
+    font-size: 18px;
+}

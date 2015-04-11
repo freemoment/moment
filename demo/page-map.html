@@ -1,0 +1,433 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/widget/refresh/refresh.default.css" />
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1421588979_2148175.css"/>
+
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+
+    <script type="text/javascript" src="style/js/gmu/core/gmu.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/event.js"></script>
+    <script type="text/javascript" src="style/js/gmu/core/widget.js"></script>
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=a4597123b7dbdfe41df2fd00bee35570"></script>
+    <script type="text/javascript" src="style/js/transition.min.js"></script>
+</head>
+<body>
+<div class="pages">
+    <div class="home-page" id="home" data-role="page">
+        <div class="search-panel start-panel" data-rel="start">
+            <i class="iconfont icon-location"><span>起</span></i>
+            <a transition="slide" href="#start" id="start-address-box">...</a>
+            <i class="iconfont icon-arrowsmallright"></i>
+        </div>
+        <div class="search-panel end-panel" data-rel="end">
+            <i class="iconfont icon-location"><span>终</span></i>
+            <a transition="slide" href="#end" id="end-address-box">选择目的地...</a>
+            <i class="iconfont icon-arrowsmallright"></i>
+        </div>
+        <div class="search-button-enter-box">
+            <button class="ui-button search-button-enter" data-rel="enter">进入</button>
+        </div>
+
+
+        <div id="iMap"></div>
+        <div id="info"></div>
+        <button class="do-location" type="button"><i class="iconfont icon-location2"></i></button>
+    </div>
+    <div class="home-page" id="start" data-role="page">
+        <header>
+            <a transition="slide" href="#home" class="btn-back"><i class="iconfont icon-arrow-small-left"></i></a>
+            <div class="home-page-searchbar">
+                <input type="text" id="start-address" />
+            </div>
+            <button id="start-button">确定</button>
+        </header>
+
+        <div id="start-address-result" class="map-autocomplate-panel"></div>
+    </div>
+
+    <div class="home-page" id="end" data-role="page">
+        <header>
+            <a transition="slide" href="#home" class="btn-back"><i class="iconfont icon-arrow-small-left"></i></a>
+            <div class="home-page-searchbar">
+                <input type="text" id="end-address" />
+            </div>
+            <button id="end-button">确定</button>
+        </header>
+
+        <div id="end-address-result" class="map-autocomplate-panel"></div>
+    </div>
+
+    <script>
+
+
+        var startAddressElement = $('#start-address-box'),
+            startAddressIpt = $('#start-address'),
+            startAddressResult = $('#start-address-result'),
+            endAddressElement = $('#end-address-box'),
+            endAddressIpt = $('#end-address'),
+            endAddressResult = $('#end-address-result'),
+            map,
+            currentCity;
+
+        map = new AMap.Map("iMap");
+        map.plugin(["AMap.ToolBar"],function(){
+            var toolBar = new AMap.ToolBar(); //设置地位标记为自定义标记
+            map.addControl(toolBar);
+            AMap.event.addListener(toolBar,'location',function callback(e){
+                var locationInfo = e.lnglat;
+                AMap.service(["AMap.Geocoder"], function() {
+                    var address = (new AMap.Geocoder()).getAddress( locationInfo, function( status, result ){
+                        if( status === 'complete' && result.info === 'OK' && result.regeocode.formattedAddress ){
+                            currentCity = result.regeocode.addressComponent.citycode;
+                            setAddress( {
+                                addressComponent : result.regeocode.addressComponent,
+                                location : [locationInfo.lat,locationInfo.lng],
+                                formattedAddress : result.regeocode.formattedAddress
+                            }, startAddressElement );
+                        }
+                    });
+                });
+            });
+            toolBar.doLocation();
+        });
+
+        var MapSelector = (function( Map ){
+            function MapSelect( opt ){
+                this.map = opt.map;
+                this.currentAddressElement = opt.currentAddressElement;
+                this.ipt = opt.input;
+                this.btn = opt.button;
+                this.resultElement = opt.resultElement;
+
+                this.currentIndex = -1;
+
+                this.bindEvent();
+            };
+            MapSelect.prototype = {
+                bindEvent : function(){
+                    var that = this;
+                    that.ipt.on('keyup', this.keydown.bind(this) );
+                    that.btn.on('click', this.keydown.bind(this) );
+                    that.resultElement.on('click',function( e ){
+                        var list = that.resultElement.children(),
+                                target = e.target;
+                        if( list.indexOf( target ) > -1 ){
+                            that.geocoder( that.data[list.indexOf( target )] );
+                        }
+                    });
+                    that.currentAddressElement.on('click',function(){
+                        var name = that.currentAddressElement.attr('data-address') || '';
+                        that.ipt.val( name );
+                        that.resultElement.hide();
+                        if( name ){
+                            that.autoSearch();
+                        }
+                    });
+                },
+                keydown : function( event ){
+                    var that = this,
+                            key = (event || window.event).keyCode,
+                            result = that.resultElement;
+
+                    var cur = that.currentIndex;
+                    if(key===40){//down key
+                        var list = result.children();
+                        if(cur + 1 < list.length){
+                            if(list[cur]){
+                                list.removeClass('selected');
+                            }
+                            that.currentIndex= cur+1;
+                            list.eq(cur+1).addClass('selected');
+                            this.ipt.val( this.data[cur+1].name );
+                        }
+                    }else if(key===38){//up key
+                        var list = result.children();
+                        if(cur-1>=0){
+                            if(list[cur]){
+                                list.removeClass('selected');
+                            }
+                            that.currentIndex = cur-1;
+                            list.eq(cur-1).addClass('selected');
+                            this.ipt.val( this.data[cur-1].name );
+                        }
+                    }else if(key === 13){
+
+                    }else{
+                        this.autoSearch();
+                    }
+                },
+                autoSearch : function(){
+                    var that = this,
+                        keywords = that.ipt.val();
+                    var auto;
+                    //加载输入提示插件
+                    this.map.plugin(["AMap.Autocomplete"], function() {
+                        var autoOptions = {
+                            city: currentCity //城市，默认全国
+                        };
+                        console.log(currentCity);
+                        auto = new Map.Autocomplete(autoOptions);
+                        //查询成功时返回查询结果
+                        if ( keywords.length > 0) {
+                            Map.event.addListener(auto,"complete",function( data ){
+                                var html = [];
+                                var arr = data.tips;
+                                //var len=tipArr.length;
+                                if ( arr && arr.length > 0 ) {
+                                    for (var i = 0; i < arr.length; i++) {
+                                        html.push('<div>' + arr[i].name + '<span>'+ arr[i].district + '</span></div>');
+                                    }
+                                }
+                                else  {
+                                    html.push("没有你想要搜索的地址");
+                                }
+
+                                that.currentIndex = -1;
+                                that.data = arr;
+                                that.resultElement.html( html.join('') );
+                                that.resultElement.show();
+                            });
+                            auto.search(keywords);
+                        }
+                        else {
+                            that.resultElement.hide();
+                        }
+                    });
+                },
+                geocoder : function( addressInfo ){
+                    var that = this;
+                    AMap.service(["AMap.Geocoder"], function() {
+                        var address = (new AMap.Geocoder({
+                            city : addressInfo.adcode
+                        })).getLocation( addressInfo.name, function( status, result ){
+                            if( status === 'complete' && result.info === 'OK' && result.geocodes.length > 0 ){
+                                console.dir( result );
+
+                                var r = null,
+                                    res = result.geocodes.filter(function(item,index){
+                                        if( item.formattedAddress.indexOf(addressInfo.name)>-1 )
+                                            return item;
+                                    });
+                                if(res.length  > 0){
+                                    r = res[0];
+                                }else{
+                                    r = result.geocodes[0];
+                                }
+                                r.name = addressInfo.name;
+                                that._setSelectorAddressInfo( r );
+                            }
+                        });
+                    });
+                },
+                _setSelectorAddressInfo : function( addressInfo ){
+                    //console.dir( addressInfo );
+                    setAddress( {
+                        addressComponent : addressInfo.addressComponent,
+                        location : [addressInfo.location.lat,addressInfo.location.lng],
+                        formattedAddress : addressInfo.formattedAddress,
+                        name : addressInfo.name || ''
+                    }, this.currentAddressElement );
+                    location.hash="home";
+                }
+            };
+            return MapSelect;
+        })( AMap );
+
+        function setAddress( addressInfo,element ){
+            element.attr('data-location',addressInfo.location);
+            element.attr('data-fulladdress',addressInfo.formattedAddress);
+            var com = addressInfo.addressComponent,
+                //address = addressInfo.formattedAddress.replace(com.province,'').replace(com.district,'').replace(com.city,'');
+                address =  addressInfo.name || addressInfo.formattedAddress.replace(com.province,'').replace(com.district,'').replace(com.city,'');
+            element.attr('data-address', address);
+            element.html(address);
+
+
+            var start = startAddressElement.attr('data-address'),
+                end = endAddressElement.attr('data-address');
+            if(start){
+                $('[data-rel="end"]').show();
+            }
+            if(start&&end){
+                $('[data-rel="enter"]').show();
+            }
+        }
+
+        new MapSelector({
+            map : map,
+            currentAddressElement : startAddressElement,
+            input : startAddressIpt,
+            button : $('#start-button'),
+            resultElement : $('#start-address-result')
+        });
+
+        new MapSelector({
+            map : map,
+            currentAddressElement : endAddressElement,
+            input : endAddressIpt,
+            button : $('#end-button'),
+            resultElement : $('#end-address-result')
+        });
+
+        $('[data-rel="enter"]').on('click',function(){
+            location.href = 'page-main.html';
+        });
+
+        /*var startAddressBox = $('#start-address-box'),
+            startAddressIpt = $('#start-address');
+            startAddressResult = $('#start-address-result');
+
+        var mapObj,toolBar,locationInfo,currentCity;
+        //初始化地图对象，加载地图
+        function mapInit(){
+            mapObj = new AMap.Map("iMap");
+            //获取当前地点的address对象
+            mapObj.plugin(["AMap.ToolBar"],function(){
+                toolBar = new AMap.ToolBar(); //设置地位标记为自定义标记
+                mapObj.addControl(toolBar);
+                AMap.event.addListener(toolBar,'location',function callback(e){
+                    locationInfo = e.lnglat;
+                    AMap.service(["AMap.Geocoder"], function() {
+                        var address = (new AMap.Geocoder()).getAddress( locationInfo, function( status, result ){
+                            if( status === 'complete' && result.info === 'OK' && result.regeocode.formattedAddress ){
+                                currentCity = result.regeocode.citycode;
+                                setStartAddress( result.regeocode );
+                            }
+                        });
+                    });
+                });
+                toolBar.doLocation();
+            });
+        }
+        mapInit();
+
+
+        function setStartAddress( addressInfo ){
+            startAddressBox.html( addressInfo.formattedAddress );
+        }
+
+
+        function geocoder( address ) {
+            var MGeocoder;
+            //加载地理编码插件
+            AMap.service(["AMap.Geocoder"], function() {
+                MGeocoder = new AMap.Geocoder({
+                    city:"0571", //城市，默认：“全国”
+                    radius:1000 //范围，默认：500
+                });
+                //返回地理编码结果
+                //地理编码
+                MGeocoder.getLocation( address, function(status, result){
+                    if(status === 'complete' && result.info === 'OK'){
+                        debugger;
+                        //geocoder_CallBack(result);
+                    }
+                });
+            });
+        }
+
+        //输入提示
+        function autoSearch() {
+            var keywords = startAddressIpt.val();
+            var auto;
+            //加载输入提示插件
+            mapObj.plugin(["AMap.Autocomplete"], function() {
+                var autoOptions = {
+                    city: currentCity //城市，默认全国
+                };
+                auto = new AMap.Autocomplete(autoOptions);
+                //查询成功时返回查询结果
+                if ( keywords.length > 0) {
+                    AMap.event.addListener(auto,"complete",autocomplete_CallBack);
+                    auto.search(keywords);
+                }
+                else {
+                    startAddressResult.hide();
+                }
+            });
+        }
+        function autocomplete_CallBack(data) {
+            var resultStr = "";
+            var tipArr = data.tips;
+            //var len=tipArr.length;
+            if (tipArr&&tipArr.length>0) {
+                for (var i = 0; i < tipArr.length; i++) {
+                    resultStr += "<div id='divid" + (i + 1) + "' onmouseover='openMarkerTipById(" + (i + 1)
+                            + ",this)' onclick='selectResult(" + i + ")' onmouseout='onmouseout_MarkerStyle(" + (i + 1)
+                            + ",this)' style=\"font-size: 13px;cursor:pointer;padding:5px 5px 5px 5px;\">" + tipArr[i].name + "<span style='color:#C1C1C1;'>"+ tipArr[i].district + "</span></div>";
+                }
+            }
+            else  {
+                resultStr = " 没有你想要搜索的地址";
+            }
+
+            startAddressResult.curSelect = -1;
+            startAddressResult.tipArr = tipArr;
+            startAddressResult.html( resultStr );
+            startAddressResult.show();
+        }
+
+        //鼠标移入时样式
+        function openMarkerTipById(pointid, thiss) {
+            thiss.style.background = '#CAE1FF';
+        }
+        //鼠标移开后样式恢复
+        function onmouseout_MarkerStyle(pointid, thiss) {
+            thiss.style.background = "";
+        }
+        //选择输入提示关键字
+        function selectResult(index) {
+            //截取输入提示的关键字部分
+            var text = document.getElementById("divid" + (index + 1)).innerHTML.replace(/<[^>].*?>.*<\/[^>].*?>/g,"");
+
+            startAddressIpt.val( text );
+
+            geocoder( text );
+
+            startAddressResult.hide();
+        }
+
+        function keydown(event){
+            var key = (event || window.event).keyCode;
+            var result = startAddressResult;
+            var cur = result.curSelect;
+            if(key===40){//down key
+                if(cur + 1 < result.childNodes.length){
+                    if(result.childNodes[cur]){
+                        result.childNodes[cur].style.background='';
+                    }
+                    result.curSelect=cur+1;
+                    result.childNodes[cur+1].style.background='#CAE1FF';
+                    startAddressIpt.value = result.tipArr[cur+1].name;
+                }
+            }else if(key===38){//up key
+                if(cur-1>=0){
+                    if(result.childNodes[cur]){
+                        result.childNodes[cur].style.background='';
+                    }
+                    result.curSelect=cur-1;
+                    result.childNodes[cur-1].style.background='#CAE1FF';
+                    startAddressIpt.value = result.tipArr[cur-1].name;
+                }
+            }else if(key === 13){
+                var res = startAddressResult;
+                if(res && res['curSelect'] !== -1){
+                    selectResult(startAddressResult.curSelect);
+                }
+
+            }else{
+                autoSearch();
+            }
+        }
+
+        document.getElementById("start-address").onkeyup = keydown;
+        document.getElementById("start-button").onclick = keydown;*/
+    </script>
+</body>
+</html>

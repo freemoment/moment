@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>Demo</title>
+    <link rel="stylesheet" type="text/css" href="style/css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="style/css/main.css" />
+
+    <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1420300224_9331315.css"/>
+
+    <script type="text/javascript" src="style/js/zepto.js"></script>
+</head>
+<body class="page-signin">
+    <div data-role="page">
+        <div class="content-wrap">
+            <div class="content-inner">
+                <input type="text" id="username" placeholder="用户名" />
+                <input type="password" id="password" placeholder="密码" />
+                <button data-type="signin" class="ui-button ui-button-green signin-button">登录</button>
+                <button data-type="signup" class="ui-button signup-button">注册</button>
+                <!--<button>忘记密码？</button>-->
+            </div>
+        </div>
+    </div>
+    <script>
+        $('[data-type="signin"]').on('click',function( e ){
+            $.getJSON('data/signin.json?type=', function(remoteData){
+                if( remoteData.code === 200 && remoteData.result.success ){
+                    location.href = "index.html";
+                }
+            });
+            e.stopPropagation();
+            return false;
+        });
+
+        $('[data-type="signup"]').on('click',function( e ){
+            location.href = "page-signup.html";
+            e.stopPropagation();
+            return false;
+        });
+    </script>
+</body>
+</html>
