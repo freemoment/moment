@@ -49,7 +49,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
             relationship.set("status",1);
              relationship.save(null, {
               success: function(relationship) {
-                var finalResult = {'code':200,'results':success};
+                var finalResult = {'code':200,'results':'success'};
 				response.success(finalResult);
 
               },
@@ -546,7 +546,7 @@ AV.Cloud.define("login", function(request, response) {
 		
 
 	  AV.User.logInWithMobilePhone(phone, password).then(function(user){
-		 var finalResult = {'code':200,'results':success};
+		 var finalResult = {'code':200,'results':'success'};
 	     response.success(finalResult);
 	  }, function(err){
 		 response.error("faile");
@@ -566,7 +566,7 @@ AV.Cloud.define("sendVerifyCode", function(request, response) {
 	  
 	  AV.User.requestMobilePhoneVerify(phone).then(function(){
 			//发送成功
-		   var finalResult = {'code':200,'results':success};
+		   var finalResult = {'code':200,'results':'success'};
 	       response.success(finalResult);
 		}, function(err){
 		   //发送失败
@@ -585,7 +585,7 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 
 	  AV.User.verifyMobilePhone(code).then(function(){
         //验证成功
-		var finalResult = {'code':200,'results':success};
+		var finalResult = {'code':200,'results':'success'};
 	    response.success(finalResult);
     }, function(err){
        //验证失败
