@@ -432,7 +432,7 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 
 
 // regester
-//   {"phone":"15835267789","username":"kitty","password":"1234"}
+//   {"phone":"15857162276","username":"kitty","password":"1234"}
 AV.Cloud.define("regesterTest", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
@@ -448,7 +448,8 @@ AV.Cloud.define("regesterTest", function(request, response) {
 	_User.set("username",username);
 	_User.set("password",password);
 	_User.set("gender",gender);
-	_User.signUp(null, {
+	_User.set("regester_status",true);
+	_User.save(null, {
 	  success: function(user) {
 		var file = AV.File.withURL('test.jpg', 'http://www.baidu.com/img/chrismaspc_552d5d36d6cd8ed48174902600cb2b4b.gif');
 		
@@ -497,7 +498,8 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 	_User.set("username",username);
 	_User.set("password",password);
 	_User.set("gender",gender);
-	 _User.signUp(null, {
+	_User.set("regester_status",true);
+	_User.save(null, {
 	  success: function(user) {
 		var fileUploadControl = $("#profilePhotoFileUpload")[0];
 		if (fileUploadControl.files.length > 0) {
@@ -561,18 +563,32 @@ AV.Cloud.define("login", function(request, response) {
 //{"phone":"18058167549"}
 AV.Cloud.define("sendVerifyCode", function(request, response) {
 
-	  var phone = request.params.phone;
-	 if(phone==='' || phone === null ) response.error("param is null when query guys sendVerifyCode.");
-	  
-	  AV.User.requestMobilePhoneVerify(phone).then(function(){
-			//发送成功
-		   var finalResult = {'code':200,'results':'success'};
-	       response.success(finalResult);
-		}, function(err){
-		   //发送失败
-		   response.success(err);
-		});
+	 var phone = request.params.phone;
+	 var password = request.params.password;
+	 if(phone==='' || phone === null ||password==='' || password === null ) response.error("param is null when query guys sendVerifyCode.");
+	  //发送验证之前，存手机号
+		var _User = AV.Object.extend("_User");
+		var _User = new _User();
 
+		var username = "u"+ phone;
+		_User.set("mobilePhoneNumber",phone);
+		_User.set("username",username);
+		_User.set("password",password);
+		 _User.save(null, {
+		  success: function(user) {
+			AV.User.requestMobilePhoneVerify(phone).then(function(){
+			//发送成功
+			   var finalResult = {'code':200,'results':'success'};
+			   response.success(finalResult);
+			}, function(err){
+			   //发送失败
+			   response.success(err);
+			});
+		  },
+		  error: function(user, error) {
+			response.error("Error " + error.code + " : " + error.message + "in sendVerifyCode when save.");
+		  }
+		});
 })
 
 
