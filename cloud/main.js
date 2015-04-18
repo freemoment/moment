@@ -432,7 +432,7 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 
 
 // regester
-//   {"phone":"15857162276","username":"kitty","password":"1234"}
+//   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
 AV.Cloud.define("regesterTest", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
@@ -440,49 +440,60 @@ AV.Cloud.define("regesterTest", function(request, response) {
 	var gender = request.params.gender;
 
 	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
+	
+	var _User = AV.Object.extend('_User');
+    query = new AV.Query(_User);
+    query.equalTo("mobilePhoneNumber", phone);
+	query.equalTo("regester_status", false);
+  
+    query.first({
+		success: function(result) {
+		    //update
+			result.set("mobilePhoneNumber",phone);
+			result.set("username",username);
+			result.set("password",password);
+			result.set("gender",gender);
+			result.set("regester_status",true);
+			result.save(null, {
+			  success: function(user) {
+				var file = AV.File.withURL('test.jpg', 'http://www.baidu.com/img/chrismaspc_552d5d36d6cd8ed48174902600cb2b4b.gif');
+				
+				file.save().then(function(restult) {
+				  // the object was saved successfully.
+					
+					user.set("image",restult);
+					//query.first
+					user.save(null,{
+					  success: function(results) {
+						  var finalResult = {'code':200,'results':results};
+						  response.success(finalResult);
+					  },
+					  error: function(error) {
+						response.error("Error ");
+					  }
+					});
+				 
+				}, function(error) {
+				  // the save failed.
+				  response.error("Error ");
+				});
 
-	var _User = AV.Object.extend("_User");
-	var _User = new _User();
-
-	_User.set("mobilePhoneNumber",phone);
-	_User.set("username",username);
-	_User.set("password",password);
-	_User.set("gender",gender);
-	_User.set("regester_status",true);
-	_User.save(null, {
-	  success: function(user) {
-		var file = AV.File.withURL('test.jpg', 'http://www.baidu.com/img/chrismaspc_552d5d36d6cd8ed48174902600cb2b4b.gif');
-		
-		file.save().then(function(restult) {
-		  // the object was saved successfully.
-			
-			user.set("image",restult);
-			//query.first
-			user.save(null,{
-			  success: function(results) {
-				  var finalResult = {'code':200,'results':results};
-				  response.success(finalResult);
 			  },
-			  error: function(error) {
-				response.error("Error ");
+			  error: function(user, error) {
+				response.error("Error " + error.code + " : " + error.message + " when regester update.");
 			  }
 			});
-		 
-		}, function(error) {
-		  // the save failed.
-		  response.error("Error ");
-		});
-
-	  },
-	  error: function(user, error) {
-		response.error("Error " + error.code + " : " + error.message + " when save.");
-	  }
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when regester query user");
+		}
 	});
+
 })
 
 
 // regester
-//   {"phone":"15835267789","username":"kitty","password":"1234"}
+//   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
 AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
@@ -490,48 +501,60 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 	var gender = request.params.gender;
 
 	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
+	
+	var _User = AV.Object.extend('_User');
+    query = new AV.Query(_User);
+    query.equalTo("mobilePhoneNumber", phone);
+	query.equalTo("regester_status", false);
+  
+    query.first({
+		success: function(result) {
+		    //update
+			result.set("mobilePhoneNumber",phone);
+			result.set("username",username);
+			result.set("password",password);
+			result.set("gender",gender);
+			result.set("regester_status",true);
+			result.save(null, {
+			  success: function(user) {
+			    //save pic
+				var fileUploadControl = $("#profilePhotoFileUpload")[0];
+				if (fileUploadControl.files.length > 0) {
+				  var file = fileUploadControl.files[0];
+				  var name = "photo.jpg";
 
-	var _User = AV.Object.extend("_User");
-	var _User = new _User();
-
-	_User.set("mobilePhoneNumber",phone);
-	_User.set("username",username);
-	_User.set("password",password);
-	_User.set("gender",gender);
-	_User.set("regester_status",true);
-	_User.save(null, {
-	  success: function(user) {
-		var fileUploadControl = $("#profilePhotoFileUpload")[0];
-		if (fileUploadControl.files.length > 0) {
-		  var file = fileUploadControl.files[0];
-		  var name = "photo.jpg";
-
-		  var avFile = new AV.File(name, file);
-		  avFile.save().then(function(restult) {
-			    //the object was saved successfully.
-				user.set("image",restult);
-				//query.first
-				user.save(null,{
-				  success: function(results) {
-					  var finalResult = {'code':200,'results':results};
-					  response.success(finalResult);
-				  },
-				  error: function(error) {
-					response.error("Error ");
-				  }
+				  var avFile = new AV.File(name, file);
+				
+				avFile.save().then(function(restult) {
+				    // the file object was saved successfully. then set to user
+					user.set("image",restult);
+					//query.first
+					user.save(null,{
+					  success: function(results) {
+						  var finalResult = {'code':200,'results':results};
+						  response.success(finalResult);
+					  },
+					  error: function(error) {
+						response.error("Error ");
+					  }
+					});
+				 
+				}, function(error) {
+				  // the save failed.
+				  response.error("Error ");
 				});
-			}, function(error) {
-			  // the save failed.
-			  response.error("Error ");
+
+			  },
+			  error: function(user, error) {
+				response.error("Error " + error.code + " : " + error.message + " when regester update.");
+			  }
 			});
-
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when regester query user");
 		}
-
-	  },
-	  error: function(user, error) {
-		response.error("Error " + error.code + " : " + error.message + " when save.");
-	  }
 	});
+
 })
 
 
