@@ -276,11 +276,15 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 
 
 // find the ones who have umber  
-// todo: implement again
+// todo: add other condition: gender and isContributor
+//{"longitude":116.403344,"latitude":39.926512,"limitNum":50,"distance":5000}
 AV.Cloud.define("queryUmberOnes", function(request, response) {
 	var longitude = request.params.longitude;
 	var latitude = request.params.latitude;
+	var limitNum = request.params.limitNum;
+	var specialDistance = request.params.specialDistance;
 	if(longitude==='' || longitude === null || latitude==='' || latitude === null ) response.error("param is null when queryUmberOnes.");
+	if(limitNum==='' || limitNum === null || specialDistance==='' || specialDistance === null ) response.error("param is null when queryUmberOnes.");
 	// User's  currentlocation
 	var userGeoPoint = new AV.GeoPoint(latitude,longitude)
 	// Create a query for places
@@ -288,7 +292,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 	var queryLocation = new AV.Query(Location);
 
 	// Limit what could be a lot of points.
-	queryLocation.limit(50);
+	queryLocation.limit(limitNum);
     queryLocation.include("user");
 	// Interested in locations near user.
 	queryLocation.near("point", userGeoPoint);
@@ -301,7 +305,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 		      var distance ="";
 		      var currentPoint = result[i].get("point");
 			  distance = userGeoPoint.kilometersTo(currentPoint)
-			  if(distance < 300){
+			  if(distance < specialDistance){
 			    //小于300的，加入集合
 				arrayObjForStart.push(result[i].get("user").id);
 			  }
@@ -318,7 +322,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 					      var distance ="";
 					      var endPoint = resultRoute[i].get("end");
 						  distance = userGeoPoint.kilometersTo(endPoint)
-						  if(distance < 300){
+						  if(distance < specialDistance){
 						  //小于300的，加入集合
 						  arrayObjForEnd.push(resultRoute[i].get("userId"));
 						  }
@@ -330,7 +334,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 					queryUser.include("Location");
 					queryUser.include("image");
 					queryUser.include("installation");
-					queryUser.limit(20);
+					queryUser.limit(limitNum);
 					queryUser.find({
 						success: function(resultUser) {
 						    //计算和每个用户的距离
