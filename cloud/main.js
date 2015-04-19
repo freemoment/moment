@@ -277,7 +277,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 
 // find the ones who have umber  
 // todo: add other condition: gender and isContributor
-//{"longitude":116.403344,"latitude":39.926512,"limitNum":50,"distance":5000}
+//{"longitude":116.403344,"latitude":39.926512,"limitNum":50,"specialDistance":5000}
 AV.Cloud.define("queryUmberOnes", function(request, response) {
 	var longitude = request.params.longitude;
 	var latitude = request.params.latitude;
