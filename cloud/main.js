@@ -437,7 +437,7 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 
 // regester
 //   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
-AV.Cloud.define("regesterTest", function(request, response) {
+AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
 	var password = request.params.password;
@@ -498,7 +498,7 @@ AV.Cloud.define("regesterTest", function(request, response) {
 
 // regester
 //   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
-AV.Cloud.define("regesterOnline", function(request, response) {
+AV.Cloud.define("regesterOnlinebak", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
 	var password = request.params.password;
