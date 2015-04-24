@@ -979,5 +979,178 @@ AV.Cloud.define("switchIsContributor", function(request, response) {
 	});
 });
 
+// 挂断状态:false,激活：true
+// {"fromUser":"lee","toUser":"spring","isActive":false}
+AV.Cloud.define("changeRelation", function(request, response) {
+	var fromUser = request.params.fromUser;
+    var toUser = request.params.toUser;
+	var isActive = request.params.isActive;
+	
+	  if(fromUser==='' || fromUser === null ) response.error("fromUser is null ");
+	  if(toUser==='' || toUser === null ) response.error("toUser is null ");
+	  if(isActive==='' || isActive === null ) response.error("isActive is null ");
+	  
+	  var Relationship = AV.Object.extend('Relationship');
+	  query = new AV.Query(Relationship);
+	  query.equalTo("fromUser",fromUser);
+	  query.equalTo("toUser",toUser);
+	  
+	  query.first({
+		success: function(result) {
+			if(result){
+				result.set("isActive", isActive);
+				result.save(null, {
+				  success: function(result) {
+					var finalResult = {'code':200,'results':result};
+					response.success(finalResult);
+					},
+				  error: function(result, error) {
+					response.error("Error " + error.code + " : " + error.message + " when update.");
+				  }
+				});
+			}
+
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when query relation finishRelation.");
+		}
+	  });
+});
+
 //////done
+
+
+
+// "honesty"  evaluate
+AV.Cloud.define("evaluateHonesty", function(request, response) {
+	 
+	var Evaluation = AV.Object.extend("Evaluation");
+    query = new AV.Query("Evaluation");
+
+	query.find({
+	  success: function(results) {
+		  results[0].increment("honesty",1);
+		  results[0].save(null, {
+		  success: function(evaluateResult) {
+			var finalResult = {'code':200,'results':evaluateResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+		
+	  },
+	  error: function(error) {
+		response.error("Error ");
+	  }
+	});
+});
+
+
+// "safety" evaluate
+AV.Cloud.define("evaluateSafety", function(request, response) {
+	 
+	var Evaluation = AV.Object.extend("Evaluation");
+    query = new AV.Query("Evaluation");
+
+	query.find({
+	  success: function(results) {
+		  results[0].increment("safety",1);
+		  results[0].save(null, {
+		  success: function(evaluateResult) {
+			var finalResult = {'code':200,'results':evaluateResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+		
+	  },
+	  error: function(error) {
+		response.error("Error ");
+	  }
+	});
+});
+
+
+// "humor"  evaluate
+AV.Cloud.define("evaluateHumor", function(request, response) {
+	 
+	var Evaluation = AV.Object.extend("Evaluation");
+    query = new AV.Query("Evaluation");
+
+	query.find({
+	  success: function(results) {
+		  results[0].increment("humor",1);
+		  results[0].save(null, {
+		  success: function(evaluateResult) {
+			var finalResult = {'code':200,'results':evaluateResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+		
+	  },
+	  error: function(error) {
+		response.error("Error ");
+	  }
+	});
+});
+
+// "awesomeLook"  evaluate
+AV.Cloud.define("evaluateAwesomeLook", function(request, response) {
+	 
+	var Evaluation = AV.Object.extend("Evaluation");
+    query = new AV.Query("Evaluation");
+
+	query.find({
+	  success: function(results) {
+		  results[0].increment("awesomeLook",1);
+		  results[0].save(null, {
+		  success: function(evaluateResult) {
+			var finalResult = {'code':200,'results':evaluateResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+		
+	  },
+	  error: function(error) {
+		response.error("Error ");
+	  }
+	});
+});
+
+
+// "asshole"  evaluate
+AV.Cloud.define("evaluateAsshole", function(request, response) {
+	 
+	var Evaluation = AV.Object.extend("Evaluation");
+    query = new AV.Query("Evaluation");
+
+	query.find({
+	  success: function(results) {
+		  results[0].increment("asshole",1);
+		  results[0].save(null, {
+		  success: function(evaluateResult) {
+			var finalResult = {'code':200,'results':evaluateResult};
+		    response.success(finalResult);
+			},
+		  error: function(result, error) {
+			response.error("Error " + error.code + " : " + error.message + " when update.");
+		  }
+		});
+		
+	  },
+	  error: function(error) {
+		response.error("Error ");
+	  }
+	});
+});
 
