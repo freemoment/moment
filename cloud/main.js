@@ -576,7 +576,7 @@ AV.Cloud.define("login", function(request, response) {
 		
 
 	  AV.User.logInWithMobilePhone(phone, password).then(function(user){
-		 var finalResult = {'code':200,'results':'success'};
+		 var finalResult = {'code':200,'results':user};
 	     response.success(finalResult);
 	  }, function(err){
 		 response.error("faile");
