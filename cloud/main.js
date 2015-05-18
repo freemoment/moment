@@ -775,103 +775,112 @@ AV.Cloud.define("checkUserName", function(request, response) {
 
 
 // save location
-// {"username":"kitty","startLatitude":1,"startLongitude":1,"endLatitude":2,"endLongitude":2}
+// {"username":"elppa","startLatitude":3,"startLongitude":3,"endLatitude":2,"endLongitude":2}
 AV.Cloud.define("saveRoute", function(request, response) {
     //当前用户id
     var username = request.params.username;
-	// start
-	var startLatitude = request.params.startLatitude;
-	var startLongitude = request.params.startLongitude;
-	// end
-	var endLatitude = request.params.endLatitude;
-	var endLongitude = request.params.endLongitude;
+  // start
+  var startLatitude = request.params.startLatitude;
+  var startLongitude = request.params.startLongitude;
+  // end
+  var endLatitude = request.params.endLatitude;
+  var endLongitude = request.params.endLongitude;
     
-	if(startLatitude==='' || startLatitude === null ) response.error("startLatitude is null ");
-	if(startLongitude==='' || startLongitude === null ) response.error("startLongitude is null ");
-	if(endLatitude==='' || endLatitude === null ) response.error("endLatitude is null ");
-	if(endLongitude==='' || endLongitude === null ) response.error("endLongitude is null ");
-	if(username==='' || username === null ) response.error("username is null ");
+  if(startLatitude==='' || startLatitude === null ) response.error("startLatitude is null ");
+  if(startLongitude==='' || startLongitude === null ) response.error("startLongitude is null ");
+  if(endLatitude==='' || endLatitude === null ) response.error("endLatitude is null ");
+  if(endLongitude==='' || endLongitude === null ) response.error("endLongitude is null ");
+  if(username==='' || username === null ) response.error("username is null ");
     
     var point = new AV.GeoPoint(startLatitude, startLongitude);
-	var endPoint = new AV.GeoPoint(endLatitude, endLongitude);
-	
-	var Route = AV.Object.extend("Route");
+  var endPoint = new AV.GeoPoint(endLatitude, endLongitude);
+  
+  var Route = AV.Object.extend("Route");
     query = new AV.Query("Route");
-	
-	var _User = AV.Object.extend("_User");
+  
+  var _User = AV.Object.extend("_User");
     user = new AV.Query("_User");
 
     user.equalTo("username",username);
-	user.first( {
-	  success: function(user) {
-	       query.equalTo("user",user);
-	       query.first({
-			success: function(result) {
-				//not exist, insert;  
-				if(!result){
-					var Route = AV.Object.extend("Route");
-					var route = new Route();
-					route.set("start", point);
-					//route.set("end", endPoint);
-					
-					 route.set("user",user);
-					 route.save(null, {
-					  success: function(result) {
-						result.set("end", endPoint);
-						result.save(null, {
-						  success: function(result) {
-							var finalResult = {'code':200,'results':result};
-							response.success(finalResult);
+  user.first( {
+    success: function(user) {
+           //if user not nul
+           if (user) {
+              AV.Query.doCloudQuery('select * from Route where user= pointer(\'_User\',?)',[user.id],
+        {
+          success: function(result){
+              
+                var queryResult = result.results[0];
+                //response.success( queryResult);
+                //not exist, insert;  
+            if(!queryResult){
+              var route = new Route();
+              route.set("start", point);
+              
+               route.set("user",user);
+               route.set("userId",user.id);
+               route.save(null, {
+                success: function(result) {
+                result.set("end", endPoint);
+                result.save(null, {
+                  success: function(result) {
+                  var finalResult = {'code':200,'results':result};
+                  response.success(finalResult);
 
-						  },
-						  error: function(result, error) {
-							response.error("Error " + error.code + " : " + error.message + " when save.");
-						  }
-						});
+                  },
+                  error: function(result, error) {
+                  response.error("Error " + error.code + " : " + error.message + " when save.");
+                  }
+                });
 
-					  },
-					  error: function(result, error) {
-						response.error("Error " + error.code + " : " + error.message + " when save.");
-					  }
-					});
-				}else{
-				  
-				    //or update
-					result.set("start", point);
-					//result.set("end", endPoint);
-				    result.save(null, {
-					  success: function(result) {
-						result.set("end", endPoint);
-						result.save(null, {
-						  success: function(result) {
-							var finalResult = {'code':200,'results':result};
-							response.success(finalResult);
+                },
+                error: function(result, error) {
+                response.error("Error " + error.code + " : " + error.message + " when save.");
+                }
+              });
+            }else{
+              
+                //or update
+              queryResult.set("start", point);
+              //result.set("end", endPoint);
+                queryResult.save(null, {
+                success: function(result) {
+                result.set("end", endPoint);
+                result.save(null, {
+                  success: function(result) {
+                  var finalResult = {'code':200,'results':result};
+                  response.success(finalResult);
 
-						  },
-						  error: function(result, error) {
-							response.error("Error " + error.code + " : " + error.message + " when save.");
-						  }
-						});
+                  },
+                  error: function(result, error) {
+                  response.error("Error " + error.code + " : " + error.message + " when save.");
+                  }
+                });
 
-					  },
-					  error: function(result, error) {
-						response.error("Error " + error.code + " : " + error.message + " when update.");
-					  }
-					});
-				}
-			},
-			error: function(error) {
-			  response.error("Error " + error.code + " : " + error.message + " when query guys saveRoute.");
-			}
-		  });
-	  },
-	  error: function(user, error) {
-		response.error("Error " + error.code + " : " + error.message + " when user find.");
-	  }
-	});
+                },
+                error: function(result, error) {
+                response.error("Error " + error.code + " : " + error.message + " when update.");
+                }
+              });
+            }
+          },
+          error: function(error){
+          //查询失败，查看 error
+          console.dir(error);
+          }
+        });
+
+           }
+         
+         //////////////////////////////////////////
+         
+    },
+    error: function(user, error) {
+    response.error("Error " + error.code + " : " + error.message + " when user find.");
+    }
+  });
 
 });
-
 
 
 
@@ -889,14 +898,14 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
 	if(longitude==='' || longitude === null ) response.error("longitude is null ");
 	if(username==='' || username === null ) response.error("username is null ");
     
-    var point = new AV.GeoPoint(latitude, longitude);
+  var point = new AV.GeoPoint(latitude, longitude);
 	var Location = AV.Object.extend("Location");
-    query = new AV.Query("Location");
+  query = new AV.Query("Location");
 	
 	var _User = AV.Object.extend("_User");
-    user = new AV.Query("_User");
+  user = new AV.Query("_User");
 
-    user.equalTo("username",username);
+  user.equalTo("username",username);
 	user.first( {
 	  success: function(user) {
 	       query.equalTo("user",user);
