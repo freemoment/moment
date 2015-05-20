@@ -1,8 +1,15 @@
+
 // count of contribution  :取正在共伞的数量  done
 //{"status":"3"}
 // status 的状态：1	请求，2	拒绝，3	接受，7	暗恋
+var Relationship = AV.Object.extend('Relationship');
+var Location = AV.Object.extend('Location');
+var Route = AV.Object.extend('Route');
+var _User = AV.Object.extend('_User');
+var Evaluation = AV.Object.extend("Evaluation");
+
+
 AV.Cloud.define("getRelationCountByStatus", function(request, response) {
-  var Relationship = AV.Object.extend('Relationship');
   query = new AV.Query(Relationship);
   query.equalTo("isActive", true);
   query.equalTo("status", request.params.status);
@@ -30,7 +37,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
     var toUserId = request.params.toUserId;
 
 	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query guys requestToSomeone.");
-    var Relationship = AV.Object.extend('Relationship');
+    
     query = new AV.Query(Relationship);
     query.equalTo("fromUser", fromUserId);
     query.equalTo("toUser", toUserId);
@@ -80,6 +87,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
 
 
 // 取消一个请求  done  {"userId":"spring","toUserId":"girl"}
+
 AV.Cloud.define("cancelRequest", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
@@ -88,8 +96,6 @@ AV.Cloud.define("cancelRequest", function(request, response) {
 	if(fromUserId==='' || toUserId==='' || fromUserId === null || toUserId===null) response.error("param is null when query cancelRequest.");
     // var fromUserId = "testone11";
     // var toUserId = "testtwo1";
-
-    var Relationship = AV.Object.extend("Relationship");
     query = new AV.Query("Relationship");
 
     query.equalTo("fromUser",fromUserId);
@@ -126,6 +132,7 @@ AV.Cloud.define("cancelRequest", function(request, response) {
 
 
 // 拒绝一个请求  done
+
 AV.Cloud.define("rejectRequest", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
@@ -134,7 +141,6 @@ AV.Cloud.define("rejectRequest", function(request, response) {
     // var fromUserId = "testone11";
     // var toUserId = "testtwo1";
 	
-	var Relationship = AV.Object.extend("Relationship");
     query = new AV.Query("Relationship");
 
     query.equalTo("fromUser",fromUserId);
@@ -145,7 +151,7 @@ AV.Cloud.define("rejectRequest", function(request, response) {
     success: function(result) {
         //already exist, do nothing;  
         if(!result){
-            var Relationship = AV.Object.extend("Relationship");
+            //var Relationship = AV.Object.extend("Relationship");
 		    var relationship = new Relationship();
 
 		    relationship.set("fromUser",fromUserId);
@@ -232,6 +238,7 @@ AV.Cloud.define("modifyEndLocation", function(request, response) {
 
 // agree a request   
 //  {"userId":"lee","toUserId":"spring"}
+
 AV.Cloud.define("agreeRequest", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
@@ -241,7 +248,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
     // var fromUserId = "testone11";
     // var toUserId = "testtwo1";
 
-    var Relationship = AV.Object.extend("Relationship");
+    //var Relationship = AV.Object.extend("Relationship");
 	query = new AV.Query("Relationship");
 
     query.equalTo("fromUser",fromUserId);
@@ -277,6 +284,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 // find the ones who have umber  
 // todo: add other condition: gender and isContributor
 //{"longitude":116.403344,"latitude":39.926512,"limitNum":50,"specialDistance":5000}
+
 AV.Cloud.define("queryUmberOnes", function(request, response) {
 	var longitude = request.params.longitude;
 	var latitude = request.params.latitude;
@@ -287,7 +295,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 	// User's  currentlocation
 	var userGeoPoint = new AV.GeoPoint(latitude,longitude)
 	// Create a query for places
-	var Location = AV.Object.extend('Location');
+	////var Location = AV.Object.extend('Location');
 	var queryLocation = new AV.Query(Location);
 
 	// Limit what could be a lot of points.
@@ -309,7 +317,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 				arrayObjForStart.push(result[i].get("user").id);
 			  }
 		    }
-			var Route = AV.Object.extend('Route');
+			//////var Route = AV.Object.extend('Route');
 			var queryRoute = new AV.Query(Route);
 			queryRoute.containedIn("userId",arrayObjForStart);
 			queryRoute.find({
@@ -327,7 +335,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 						  }
 					    }
 					
-					var _User = AV.Object.extend('_User');
+					////var _User = AV.Object.extend('_User');
 					var queryUser = new AV.Query(_User);
 					queryUser.containedIn("objectId",arrayObjForEnd);
 					queryUser.include("Location");
@@ -365,23 +373,6 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 		}
 	});
 });
-
-
-// find the ones who dont have umber 
-// todo: implement again
-AV.Cloud.define("queryNoUmberOnes", function(request, response) {
-  var User = AV.Object.extend('User');
-  query = new AV.Query(User);
-  query.find({
-    success: function(result) {
-        response.success(result);
-
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys queryUmberOnes.");
-    }
-  });
-})
 
 
 
@@ -436,6 +427,7 @@ AV.Cloud.define("queryMyRequestList", function(request, response) {
 
 // regester
 //   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
+
 AV.Cloud.define("regesterOnline", function(request, response) {
 	var phone = request.params.phone;
 	var username = request.params.username;
@@ -444,7 +436,7 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 
 	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
 	
-	var _User = AV.Object.extend('_User');
+	//var _User = AV.Object.extend('_User');
     query = new AV.Query(_User);
     query.equalTo("mobilePhoneNumber", phone);
 	query.equalTo("regester_status", false);
@@ -495,72 +487,6 @@ AV.Cloud.define("regesterOnline", function(request, response) {
 })
 
 
-// regester
-//   {"phone":"18058167549","username":"u_spring","password":"1234","gender":"1"}
-AV.Cloud.define("regesterOnlinebak", function(request, response) {
-	var phone = request.params.phone;
-	var username = request.params.username;
-	var password = request.params.password;
-	var gender = request.params.gender;
-
-	if(phone==='' || phone === null ||username==='' || username === null ||password==='' || password === null ||gender==='' || gender === null) response.error("param is null when register.");
-	
-	var _User = AV.Object.extend('_User');
-    query = new AV.Query(_User);
-    query.equalTo("mobilePhoneNumber", phone);
-	query.equalTo("regester_status", false);
-  
-    query.first({
-		success: function(result) {
-		    //update
-			result.set("mobilePhoneNumber",phone);
-			result.set("username",username);
-			result.set("password",password);
-			result.set("gender",gender);
-			result.set("regester_status",true);
-			result.save(null, {
-			  success: function(user) {
-			    //save pic
-				var fileUploadControl = $("#profilePhotoFileUpload")[0];
-				if (fileUploadControl.files.length > 0) {
-					var file = fileUploadControl.files[0];
-					var name = "photo.jpg";
-
-					var avFile = new AV.File(name, file);
-				
-					avFile.save().then(function(restult) {
-						// the file object was saved successfully. then set to user
-						user.set("image",restult);
-						//query.first
-						user.save(null,{
-						  success: function(results) {
-							  var finalResult = {'code':200,'results':results};
-							  response.success(finalResult);
-						  },
-						  error: function(error) {
-							response.error("Error ");
-						  }
-						});
-					 
-					}, function(error) {
-					  // the save failed.
-					  response.error("Error ");
-					});
-				}
-
-			  },
-			  error: function(user, error) {
-				response.error("Error " + error.code + " : " + error.message + " when regester update.");
-			  }
-			});
-		},
-		error: function(error) {
-		  response.error("Error " + error.code + " : " + error.message + " when regester query user");
-		}
-	});
-
-})
-
 
 
 
@@ -588,13 +514,14 @@ AV.Cloud.define("login", function(request, response) {
 
 //sendVerifyCode
 //{"phone":"18058167549"}
+
 AV.Cloud.define("sendVerifyCode", function(request, response) {
 
 	 var phone = request.params.phone;
 	 var password = request.params.password;
 	 if(phone==='' || phone === null ||password==='' || password === null ) response.error("param is null when query guys sendVerifyCode.");
 	  //发送验证之前，存手机号
-		var _User = AV.Object.extend("_User");
+		////var _User = AV.Object.extend("_User");
 		var _User = new _User();
 
 		var username = "u"+ phone;
@@ -641,12 +568,13 @@ AV.Cloud.define("handleVerifyCode", function(request, response) {
 
 //logout
 //{"userId":"54903e39e4b0e5bf1286f33c"}
+
 AV.Cloud.define("logOut", function(request, response) {
      //当前用户id
     var userId = request.params.userId;
 
 	if(userId==='' || userId === null ) response.error("param is null when query logOut.");
-    var _User = AV.Object.extend('_User');
+    ////var _User = AV.Object.extend('_User');
     query = new AV.Query(_User);
     query.equalTo("objectId", userId);
   
@@ -680,13 +608,14 @@ AV.Cloud.define("logOut", function(request, response) {
 
 //list detail
 //{"userId":"54a2c310e4b06eb20392b984"}
+
 AV.Cloud.define("showDetail", function(request, response) {
 	 
 	 //当前用户id
     var userId = request.params.userId;
 
 	if(userId==='' || userId === null ) response.error("param is null when query showDetail.");
-    var _User = AV.Object.extend('_User');
+    ////var _User = AV.Object.extend('_User');
     query = new AV.Query(_User);
     query.equalTo("objectId", userId);
   
@@ -705,13 +634,14 @@ AV.Cloud.define("showDetail", function(request, response) {
 
 //update my detail
 //{"userId":"54a2c310e4b06eb20392b984","username":"boy77","password":"456","gender":"0","signature":"fuck me"}
+
 AV.Cloud.define("updateMyDetail", function(request, response) {
 	 
 	 //当前用户id
     var userId = request.params.userId;
 
 	if(userId==='' || userId === null ) response.error("param is null when query showDetail.");
-    var _User = AV.Object.extend('_User');
+    ////var _User = AV.Object.extend('_User');
     query = new AV.Query(_User);
     query.equalTo("objectId", userId);
   
@@ -748,13 +678,14 @@ AV.Cloud.define("updateMyDetail", function(request, response) {
 
 //checkUserName
 //{"username":"kitty"}
+
 AV.Cloud.define("checkUserName", function(request, response) {
 	 
 	var username = request.params.username;
 
 	if(username==='' || username === null ) response.error("param is null when checkUserName.");
 
-	var _User = AV.Object.extend("_User");
+	////var _User = AV.Object.extend("_User");
 	var _User = new AV.Query(_User);
 
 	_User.equalTo("username",username);
@@ -775,6 +706,7 @@ AV.Cloud.define("checkUserName", function(request, response) {
 
 // save location
 // {"username":"elppa","startLatitude":3,"startLongitude":3,"endLatitude":2,"endLongitude":2}
+
 AV.Cloud.define("saveRoute", function(request, response) {
     //当前用户id
     var username = request.params.username;
@@ -794,10 +726,10 @@ AV.Cloud.define("saveRoute", function(request, response) {
     var point = new AV.GeoPoint(startLatitude, startLongitude);
   var endPoint = new AV.GeoPoint(endLatitude, endLongitude);
   
-  var Route = AV.Object.extend("Route");
+  ////var Route = AV.Object.extend("Route");
     query = new AV.Query("Route");
   
-  var _User = AV.Object.extend("_User");
+  ////var _User = AV.Object.extend("_User");
     user = new AV.Query("_User");
 
     user.equalTo("username",username);
@@ -886,8 +818,9 @@ AV.Cloud.define("saveRoute", function(request, response) {
 
 // save location
 // {"username":"kitty","latitude":1,"longitude":1}
+
 AV.Cloud.define("saveCurrentAddress", function(request, response) {
-    //当前用户id
+     //当前用户id
     var username = request.params.username;
 	// start
 	var latitude = request.params.latitude;
@@ -898,10 +831,10 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
 	if(username==='' || username === null ) response.error("username is null ");
     
     var point = new AV.GeoPoint(latitude, longitude);
-	var Location = AV.Object.extend("Location");
+	////var Location = AV.Object.extend("Location");
     query = new AV.Query("Location");
 	
-	var _User = AV.Object.extend("_User");
+	////var _User = AV.Object.extend("_User");
     user = new AV.Query("_User");
 
     user.equalTo("username",username);
@@ -981,20 +914,20 @@ AV.Cloud.define("saveCurrentAddress", function(request, response) {
 		response.error("Error " + error.code + " : " + error.message + " when user find.");
 	  }
 	});
-
 });
 
 
 
 // save current location
 // {"username":"kitty","isContributor":true}
+
 AV.Cloud.define("switchIsContributor", function(request, response) {
   var username = request.params.username;
   var isContributor = request.params.isContributor;
   if(isContributor==='' || isContributor === null ) response.error("isContributor is null ");
   if(username==='' || username === null ) response.error("username is null ");
 
-  var _User = AV.Object.extend("_User");
+  ////var _User = AV.Object.extend("_User");
   query = new AV.Query("_User");
   query.equalTo("username",username);
   query.first({
@@ -1020,6 +953,7 @@ AV.Cloud.define("switchIsContributor", function(request, response) {
 
 // 挂断状态:false,激活：true
 // {"fromUser":"lee","toUser":"spring","isActive":false}
+
 AV.Cloud.define("changeRelation", function(request, response) {
 	var fromUser = request.params.fromUser;
     var toUser = request.params.toUser;
@@ -1029,7 +963,7 @@ AV.Cloud.define("changeRelation", function(request, response) {
 	  if(toUser==='' || toUser === null ) response.error("toUser is null ");
 	  if(isActive==='' || isActive === null ) response.error("isActive is null ");
 	  
-	  var Relationship = AV.Object.extend('Relationship');
+	  ////var Relationship = AV.Object.extend('Relationship');
 	  query = new AV.Query(Relationship);
 	  query.equalTo("fromUser",fromUser);
 	  query.equalTo("toUser",toUser);
@@ -1061,9 +995,10 @@ AV.Cloud.define("changeRelation", function(request, response) {
 
 
 // "honesty"  evaluate
+
 AV.Cloud.define("evaluateHonesty", function(request, response) {
 	 
-	var Evaluation = AV.Object.extend("Evaluation");
+	////var Evaluation = AV.Object.extend("Evaluation");
     query = new AV.Query("Evaluation");
 
 	query.find({
@@ -1088,9 +1023,10 @@ AV.Cloud.define("evaluateHonesty", function(request, response) {
 
 
 // "safety" evaluate
+
 AV.Cloud.define("evaluateSafety", function(request, response) {
 	 
-	var Evaluation = AV.Object.extend("Evaluation");
+	////var Evaluation = AV.Object.extend("Evaluation");
     query = new AV.Query("Evaluation");
 
 	query.find({
@@ -1115,9 +1051,10 @@ AV.Cloud.define("evaluateSafety", function(request, response) {
 
 
 // "humor"  evaluate
+
 AV.Cloud.define("evaluateHumor", function(request, response) {
 	 
-	var Evaluation = AV.Object.extend("Evaluation");
+	////var Evaluation = AV.Object.extend("Evaluation");
     query = new AV.Query("Evaluation");
 
 	query.find({
@@ -1141,9 +1078,10 @@ AV.Cloud.define("evaluateHumor", function(request, response) {
 });
 
 // "awesomeLook"  evaluate
+
 AV.Cloud.define("evaluateAwesomeLook", function(request, response) {
 	 
-	var Evaluation = AV.Object.extend("Evaluation");
+	////var Evaluation = AV.Object.extend("Evaluation");
     query = new AV.Query("Evaluation");
 
 	query.find({
@@ -1168,9 +1106,10 @@ AV.Cloud.define("evaluateAwesomeLook", function(request, response) {
 
 
 // "asshole"  evaluate
+
 AV.Cloud.define("evaluateAsshole", function(request, response) {
 	 
-	var Evaluation = AV.Object.extend("Evaluation");
+	////var Evaluation = AV.Object.extend("Evaluation");
     query = new AV.Query("Evaluation");
 
 	query.find({
@@ -1192,3 +1131,4 @@ AV.Cloud.define("evaluateAsshole", function(request, response) {
 	  }
 	});
 });
+
