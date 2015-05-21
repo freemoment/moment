@@ -62,8 +62,8 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
           result.set("isActive",true);
           result.save(null, {
               success: function(result) {
-                response.success("success");
-
+                var finalResult = {'code':200,'results':'success'};
+				response.success(finalResult);
               },
               error: function(result, error) {
                 response.error("Error " + error.code + " : " + error.message + " when update.");
@@ -72,7 +72,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
         }
     },
     error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys InOneUmberCount.");
+      response.error("Error " + error.code + " : " + error.message + " when query relationship.");
     }
   });
 
@@ -256,7 +256,8 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 		  result.set("status",3);
           result.save(null, {
               success: function(result) {
-                response.success("success");
+				var finalResult = {'code':200,'results':'success'};
+				response.success(finalResult);
 
               },
               error: function(result, error) {
@@ -388,22 +389,23 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 // find the ones who request yourself 
 //{"userId":"spring","offset":0,"count":1}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
- var toUserId = request.params.userId;
- //var toUserId = AV.User.current().get("objectId");
- var offset = request.params.offset;
- var count = request.params.count;
- if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
- AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,offset,count],
- {
-  success: function(result){
-     var finalResult = {'code':200,'results':result};
-	response.success(finalResult);
-  },
-  error: function(error){
-    //查询失败，查看 error
-    console.dir(error);
-  }
-});
+	 var toUserId = request.params.userId;
+	 //var toUserId = AV.User.current().get("objectId");
+	 var offset = request.params.offset;
+	 var count = request.params.count;
+	 if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
+	 AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,offset,count],
+		 {
+		  success: function(result){
+			 var queryResult = result.results[0];
+			 var finalResult = {'code':200,'results':queryResult};
+			response.success(finalResult);
+		  },
+		  error: function(error){
+			//查询失败，查看 error
+			console.dir(error);
+		  }
+		});
 })
 
 
