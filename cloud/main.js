@@ -277,7 +277,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 
 // find the ones who have umber  
 // todo: add other condition: gender and isContributor
-//{"longitude":116.403344,"latitude":39.926512,"limitNum":50,"specialDistance":5000}
+//{"longitude":116.403344,"latitude":39.926512,"limitNum":10,"specialDistance":5000}
 AV.Cloud.define("queryUmberOnes", function(request, response) {
 	var longitude = request.params.longitude;
 	var latitude = request.params.latitude;
@@ -387,19 +387,47 @@ AV.Cloud.define("queryNoUmberOnes", function(request, response) {
 
 
 // find the ones who request yourself 
-//{"userId":"spring","offset":0,"count":1}
+//{"userId":"spring","offset":0,"count":10,"longitude":116.403344,"latitude":39.926512}
 AV.Cloud.define("queryRequestToMeList", function(request, response) {
-	 var toUserId = request.params.userId;
-	 //var toUserId = AV.User.current().get("objectId");
+	var toUserId = request.params.userId;
+	 
 	 var offset = request.params.offset;
 	 var count = request.params.count;
+	 var longitude = request.params.longitude;
+	 var latitude = request.params.latitude;
+	 
+	 if(longitude==='' || longitude === null || latitude==='' || latitude === null ) response.error("param is null when queryRequestToMeList.");
 	 if(toUserId==='' || toUserId === null ) response.error("param is null when queryRequestToMeList.");
-	 AV.Query.doCloudQuery('select * from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,offset,count],
+	 
+	 var userGeoPoint = new AV.GeoPoint(latitude,longitude)
+	 AV.Query.doCloudQuery('select include Location,* from _User where username = (select fromUser from Relationship where toUser=? and status=1 limit ?,?)',[toUserId,offset,count],
 		 {
 		  success: function(result){
-			 var queryResult = result.results[0];
-			 var finalResult = {'code':200,'results':queryResult};
+			 var queryResult = result.results;
+			 for (var i = 0; i < queryResult.length; i++) {
+			      queryResult[i].set('Location', queryResult[i].get('Location').toJSON());
+			 }
+			 
+			 //response.success(queryResult);
+			 //计算和每个用户的距离
+			for (var i = 0; i < queryResult.length; i++) {
+			  //读取坐标
+			  var distance ="";
+			  //console.log(queryResult[i].get('Location'));
+			  if(queryResult[i]){
+			      
+				  var currentLocation = queryResult[i].get('Location').point;
+				  console.log(currentLocation);
+				  
+				  //获取距离
+				  distance = userGeoPoint.kilometersTo(currentLocation)
+				  
+				  queryResult[i].add("distance", distance)
+			  }
+			}
+			var finalResult = {'code':200,'results':queryResult};
 			response.success(finalResult);
+			
 		  },
 		  error: function(error){
 			//查询失败，查看 error
@@ -407,8 +435,6 @@ AV.Cloud.define("queryRequestToMeList", function(request, response) {
 		  }
 		});
 })
-
-
 
 
 // find the ones who I sent request 
@@ -597,13 +623,13 @@ AV.Cloud.define("sendVerifyCode", function(request, response) {
 	 if(phone==='' || phone === null ||password==='' || password === null ) response.error("param is null when query guys sendVerifyCode.");
 	  //发送验证之前，存手机号
 		var _User = AV.Object.extend("_User");
-		var _User = new _User();
+		var userQuery = new _User();
 
 		var username = "u"+ phone;
-		_User.set("mobilePhoneNumber",phone);
-		_User.set("username",username);
-		_User.set("password",password);
-		 _User.save(null, {
+		userQuery.set("mobilePhoneNumber",phone);
+		userQuery.set("username",username);
+		userQuery.set("password",password);
+		userQuery.save(null, {
 		  success: function(user) {
 			AV.User.requestMobilePhoneVerify(phone).then(function(){
 			//发送成功
@@ -757,11 +783,11 @@ AV.Cloud.define("checkUserName", function(request, response) {
 	if(username==='' || username === null ) response.error("param is null when checkUserName.");
 
 	var _User = AV.Object.extend("_User");
-	var _User = new AV.Query(_User);
+	var userQuery = new AV.Query(_User);
 
-	_User.equalTo("username",username);
+	userQuery.equalTo("username",username);
 
-	_User.count( {
+	userQuery.count( {
 	  success: function(user) {
 	       var finalResult = {'code':200,'results':user};
 	       response.success(finalResult);

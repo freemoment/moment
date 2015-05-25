@@ -686,11 +686,11 @@ AV.Cloud.define("checkUserName", function(request, response) {
 	if(username==='' || username === null ) response.error("param is null when checkUserName.");
 
 	////var _User = AV.Object.extend("_User");
-	var _User = new AV.Query(_User);
+	var userQuery = new AV.Query(_User);
 
-	_User.equalTo("username",username);
+	userQuery.equalTo("username",username);
 
-	_User.count( {
+	userQuery.count( {
 	  success: function(user) {
 	       var finalResult = {'code':200,'results':user};
 	       response.success(finalResult);
