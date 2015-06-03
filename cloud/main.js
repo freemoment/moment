@@ -771,21 +771,28 @@ AV.Cloud.define("logOut", function(request, response) {
 
 
 //list detail
-//{"userId":"54a2c310e4b06eb20392b984"}
+//{"userId":"spring"}
 AV.Cloud.define("showDetail", function(request, response) {
 	 
 	 //当前用户id
+	var _User = AV.Object.extend('_User');
     var userId = request.params.userId;
 
 	if(userId==='' || !userId ) response.error("param is null when query showDetail.");
-    ;
+
     query = new AV.Query(_User);
-    query.equalTo("objectId", userId);
-  
+    query.equalTo("username", userId);
+    query.include("evaluation");
     query.first({
     success: function(result) {
-       var finalResult = {'code':200,'results':result};
-	   response.success(finalResult);
+       if(result.get('evaluation')){
+           result.set('evaluation', result.get('evaluation').toJSON());
+           var finalResult = {'code':200,'results':result};
+    	   response.success(finalResult);
+       }else{
+           var finalResult = {'code':200,'results':result};
+    	   response.success(finalResult);
+       }
     },
     error: function(error) {
       response.error("Error " + error.code + " : " + error.message + " when query showDetail");
