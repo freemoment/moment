@@ -40,7 +40,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
     query = new AV.Query(Relationship);
     query.equalTo("fromUser", fromUserId);
     query.equalTo("toUser", toUserId);
-    query.equalTo("status", 1);
+    //query.equalTo("status", 1);
   
     query.first({
     success: function(result) {
@@ -66,6 +66,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
 		  
           // or update
           result.set("isActive",true);
+		  result.set("status",1);
           result.save(null, {
               success: function(result) {
                 var finalResult = {'code':200,'results':'success'};
@@ -85,7 +86,7 @@ AV.Cloud.define("requestToSomeone", function(request, response) {
 });
 
 
-// 取消一个请求  done  {"userId":"spring","toUserId":"girl"}
+// 取消一个请求  done  {"userId":"spring","toUserId":"girl"}  暂时不用
 AV.Cloud.define("cancelRequest", function(request, response) {
     //当前用户id
     var fromUserId = request.params.userId;
@@ -145,7 +146,7 @@ AV.Cloud.define("rejectRequest", function(request, response) {
 
     query.equalTo("fromUser",fromUserId);
     query.equalTo("toUser",toUserId);
-    query.equalTo("status",1);
+    //query.equalTo("status",1);
     
 	query.first({
     success: function(result) {
@@ -247,10 +248,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
     var toUserId = request.params.toUserId;
 
 	if(fromUserId==='' || toUserId==='' || !fromUserId || !toUserId ) response.error("param is null when agreeRequest.");
-    // var fromUserId = "testone11";
-    // var toUserId = "testtwo1";
-
-    //var Relationship = AV.Object.extend("Relationship");
+    
 	query = new AV.Query("Relationship");
 
     query.equalTo("fromUser",fromUserId);
@@ -265,8 +263,27 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 		  result.set("status",3);
           result.save(null, {
               success: function(result) {
-				var finalResult = {'code':200,'results':'success'};
-				response.success(finalResult);
+				  
+				///////////////////////
+				var fromIdQuery = new AV.Query("Relationship");
+				fromIdQuery.equalTo("fromUser",fromUserId);
+				
+				var toIdQuery = new AV.Query("Relationship");
+				toIdQuery.equalTo("toUser",fromUserId);
+				
+				var mainQuery = AV.Query.or(fromIdQuery, toIdQuery);
+				mainQuery.find({
+				  success: function(results) {
+					 // results contains a list of players that either have won a lot of games or won only a few games.
+				  },
+				  error: function(error) {
+					// There was an error.
+				  }
+				});
+				
+				///////////////////////
+				//var finalResult = {'code':200,'results':'success'};
+				//response.success(finalResult);
 
               },
               error: function(result, error) {
@@ -1152,6 +1169,34 @@ AV.Cloud.define("changeRelation", function(request, response) {
 		  response.error("Error " + error.code + " : " + error.message + " when query relation finishRelation.");
 		}
 	  });
+});
+
+
+
+// {"currentUserName":"elppa"}
+AV.Cloud.define("queryAgreeRelationShip", function(request, response) {
+	var currentUserName = request.params.currentUserName;
+
+	if(currentUserName==='' ||  !currentUserName ) response.error("param is null when query agreeRequest list.");
+	query = new AV.Query(Relationship);
+	query.equalTo("toUser",currentUserName);
+	query.equalTo("status",3);
+	query.equalTo("isActive",true);
+	query.first({
+		success: function(relationResult) {
+			if(relationResult){
+				var finalResult = {'code':200,'results':relationResult};
+				response.success(finalResult);
+			}else{
+				var finalResult = {'code':200,'results':relationResult};
+				response.success(finalResult);
+			}
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when query agree relation .");
+		}
+});
+		
 });
 
 //////done
