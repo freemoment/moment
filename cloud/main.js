@@ -243,60 +243,104 @@ AV.Cloud.define("modifyEndLocation", function(request, response) {
 // agree a request   
 //  {"userId":"lee","toUserId":"spring"}
 AV.Cloud.define("agreeRequest", function(request, response) {
-    //当前用户id
+    	//当前用户id
     var fromUserId = request.params.userId;
     var toUserId = request.params.toUserId;
 
 	if(fromUserId==='' || toUserId==='' || !fromUserId || !toUserId ) response.error("param is null when agreeRequest.");
     
-	query = new AV.Query("Relationship");
+	var query = new AV.Query("Relationship");
 
     query.equalTo("fromUser",fromUserId);
     query.equalTo("toUser",toUserId);
 	
-	query.first({
-    success: function(result) {
-        //already exist 
-        if(result){
-          // update
-          result.set("isActive",true);
-		  result.set("status",3);
-          result.save(null, {
-              success: function(result) {
-				  
-				///////////////////////
-				var fromIdQuery = new AV.Query("Relationship");
-				fromIdQuery.equalTo("fromUser",fromUserId);
-				
-				var toIdQuery = new AV.Query("Relationship");
-				toIdQuery.equalTo("toUser",fromUserId);
-				
-				var mainQuery = AV.Query.or(fromIdQuery, toIdQuery);
-				mainQuery.find({
-				  success: function(results) {
-					 // results contains a list of players that either have won a lot of games or won only a few games.
-				  },
-				  error: function(error) {
-					// There was an error.
-				  }
-				});
-				
-				///////////////////////
-				//var finalResult = {'code':200,'results':'success'};
-				//response.success(finalResult);
-
-              },
-              error: function(result, error) {
-                response.error("Error " + error.code + " : " + error.message + " when update.");
-              }
-            });
-        }
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when query guys InOneUmberCount.");
-    }
+	var revertQuery = new AV.Query("Relationship");
+	revertQuery.equalTo("fromUser",toUserId);
+    revertQuery.equalTo("toUser",fromUserId);
+	
+	var mainQueryForAgree = AV.Query.or(query, revertQuery);
+	
+	mainQueryForAgree.find({
+	    success: function(result) {
+		    //提取 result的数据，组成数组
+			for (var i = 0; i < result.length; i++) {
+				result[i].set("status",3);
+			}
+		    AV.Object.saveAll(result, {
+			    success: function(list) {
+			      console.log(list);
+					//fromUser relation update
+					var fromIdQuery = new AV.Query("Relationship");
+					fromIdQuery.equalTo("fromUser",fromUserId);
+					fromIdQuery.notEqualTo("toUser", toUserId);
+					
+					var toIdQuery = new AV.Query("Relationship");
+					toIdQuery.equalTo("toUser",fromUserId);
+					toIdQuery.notEqualTo("fromUser", toUserId);
+					
+					var mainQuery = AV.Query.or(fromIdQuery, toIdQuery);
+					mainQuery.find({
+						  success: function(results) {
+							for (var i = 0; i < results.length; i++) {
+								results[i].set("status",2);
+							}
+							AV.Object.saveAll(results, {
+							    success: function(listFromUser) {
+									//response.success(listFromUser);
+									var fromIdQuery1 = new AV.Query("Relationship");
+									
+									//toUser relation update
+									fromIdQuery1.equalTo("fromUser",toUserId);
+									fromIdQuery1.notEqualTo("toUser", fromUserId);
+									
+									var toIdQuery1 = new AV.Query("Relationship");
+									toIdQuery1.equalTo("toUser",toUserId);
+									toIdQuery1.notEqualTo("fromUser", fromUserId);
+									
+									var mainQuery1 = AV.Query.or(fromIdQuery1, toIdQuery1);
+									mainQuery1.find({
+									  success: function(results) {
+										for (var i = 0; i < results.length; i++) {
+											results[i].set("status",2);
+										}
+										AV.Object.saveAll(results, {
+										    success: function(listToUser) {
+												var finalResult = {'code':200,'results':'success'};
+												response.success(finalResult);
+										    },
+										    error: function(error) {
+										      // An error occurred while saving one of the objects.
+											  response.error("Error " + error.code + " : " + error.message + " when saveAll.");
+										    },
+										});
+									  },
+									  error: function(error) {
+										response.error("Error " + error.code + " : " + error.message + " when find.");
+									  }
+									});
+							    },
+							    error: function(error) {
+							      // An error occurred while saving one of the objects.
+									response.error("Error " + error.code + " : " + error.message + " when saveAll.");
+							    },
+							});
+						  },
+						  error: function(error) {
+							response.error("Error " + error.code + " : " + error.message + " when find.");
+						  }
+					});
+					////////////////////////
+			    },
+			    error: function(error) {
+			      // An error occurred while saving one of the objects.
+				  response.error("Error " + error.code + " : " + error.message + " when saveAll.");
+			    },
+			  });
+	    },
+	    error: function(error) {
+	      response.error("Error " + error.code + " : " + error.message + " when mainQueryForAgree.find.");
+	    }
   });
-
 });
 
 
