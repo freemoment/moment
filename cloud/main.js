@@ -279,7 +279,7 @@ AV.Cloud.define("agreeRequest", function(request, response) {
 // find the ones who have umber  
 // todo: add other condition: gender and isContributor
 //{"longitude":116.403344,"latitude":39.926512,"limitNum":10,"specialDistance":5000,"currentUserName":"spring"}
-AV.Cloud.define("queryUmberOnes", function(request, response) {
+AV.Cloud.define("queryNearByOnes", function(request, response) {
 	var longitude = request.params.longitude;
 	var latitude = request.params.latitude;
 	var limitNum = request.params.limitNum;
@@ -301,6 +301,7 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 	queryLocation.near("point", userGeoPoint);
 	queryLocation.find({
 		success: function(result) {
+		
 		  // 起点小于300的  
 		  var arrayObjForStart = new Array();
 		  for (var i = 0; i < result.length; i++) {
@@ -313,107 +314,37 @@ AV.Cloud.define("queryUmberOnes", function(request, response) {
 				arrayObjForStart.push(result[i].get("user").id);
 			  }
 		    }
-			//var Route = AV.Object.extend('Route');
-			var queryRoute = new AV.Query(Route);
-			queryRoute.containedIn("userId",arrayObjForStart);
-			queryRoute.find({
-				success: function(resultRoute) {
-				     // 终点小于300的  
-					 var arrayObjForEnd = new Array();
-					  for (var i = 0; i < resultRoute.length; i++) {
-					      //读取坐标
-					      var distance ="";
-					      var endPoint = resultRoute[i].get("end");
-						  distance = userGeoPoint.kilometersTo(endPoint)
-						  if(distance < specialDistance){
-						  //小于300的，加入集合
-						  arrayObjForEnd.push(resultRoute[i].get("userId"));
-						  }
-					    }
+			
+			//var _User = AV.Object.extend('_User');
+			var queryUser = new AV.Query(_User);
+			queryUser.containedIn("objectId",arrayObjForStart);
+			queryUser.include("Location");
+			queryUser.include("image");
+			queryUser.include("installation");
+			queryUser.limit(limitNum);
+			queryUser.notEqualTo("username", currentUserName);
+			queryUser.find({
+				success: function(resultUser) {
+					//response.success(resultUser);
+					//计算和每个用户的距离
+					//var Relationship = AV.Object.extend('Relationship');
 					
-					//var _User = AV.Object.extend('_User');
-					var queryUser = new AV.Query(_User);
-					queryUser.containedIn("objectId",arrayObjForEnd);
-					queryUser.include("Location");
-					queryUser.include("image");
-					queryUser.include("installation");
-					queryUser.limit(limitNum);
-					queryUser.notEqualTo("username", currentUserName);
-					queryUser.find({
-						success: function(resultUser) {
-						    //response.success(resultUser);
-						    //计算和每个用户的距离
-							//var Relationship = AV.Object.extend('Relationship');
-							var arrayObjForToUser = new Array();
-							for (var i = 0; i < resultUser.length; i++) {
-							  //读取坐标
-							  var distance ="";
-							  var currentLocation = resultUser[i].get("Location").get("point");
-							  //获取距离
-							  distance = userGeoPoint.kilometersTo(currentLocation)
-							  
-							  resultUser[i].add("distance", distance)
-							  
-							  arrayObjForToUser.push(resultUser[i].get("username"));
-							  
-							}
-							/////////////////////////////////
-							// relationshipMap defined
-							var toUser_Stutas_relationshipMap = {};
-							var toUser_updatedAt_relationshipMap = {};
-							// relationship 
-							queryRelationship = new AV.Query(Relationship);
-							queryRelationship.equalTo("fromUser",currentUserName);
-							queryRelationship.containedIn("toUser",arrayObjForToUser);
-							queryRelationship.equalTo("isActive",true);
-							queryRelationship.find({
-								success: function(relationResult) {
-									if(relationResult){
-									    for (var j = 0; j < relationResult.length; j++) {
-											//console.log(relationResult[j].get("toUser"));
-											//console.log(relationResult[j].updatedAt);
-											toUser_Stutas_relationshipMap[relationResult[j].get("toUser")]=relationResult[j].get("status");
-											toUser_updatedAt_relationshipMap[relationResult[j].get("toUser")]=relationResult[j].updatedAt;
-										}
-										//console.log(toUser_updatedAt_relationshipMap);
-										//console.log(toUser_Stutas_relationshipMap);
-										//response.success(resultUser);
-										//////////////
-										for (var i = 0; i < resultUser.length; i++) {
-										  //status  updatedAt
-										  //resultUser[i].add("statusRelationShip", relationResult.get("status"));
-										  //resultUser[i].add("updatedAtRelationShip", relationResult.get("updatedAt"));
-										  //console.log("toUser: "+resultUser[i].get("username"));
-										  //var key= resultUser[i].get("username")
-										  //console.log("map: "+ toUser_Stutas_relationshipMap[key]);
-										 if(toUser_Stutas_relationshipMap.hasOwnProperty(resultUser[i].get("username"))){
-										        //console.log("map: "+toUser_Stutas_relationshipMap[resultUser[i].get("username")]);
-												resultUser[i].add("statusRelationShip", toUser_Stutas_relationshipMap[resultUser[i].get("username")]);
-										 }
-										 if(toUser_updatedAt_relationshipMap.hasOwnProperty(resultUser[i].get("username"))){
-										        //console.log("map: "+toUser_updatedAt_relationshipMap[resultUser[i].get("username")]);
-												resultUser[i].add("updatedAtRelationShip", toUser_updatedAt_relationshipMap[resultUser[i].get("username")]);
-										 }
-										  
-										}
-										//////////////////////
-										var finalResult = {'code':200,'results':resultUser};
-										response.success(finalResult);
-									}
-								},
-								error: function(error) {
-									response.error("Error " + error.code + " : " + error.message + " when query relation.");
-								}
-							});
-							
-						},
-						error: function(error) {
-							response.error("Error " + error.code + " : " + error.message + " when query user in xxx.");
-						}
-					});
+					for (var i = 0; i < resultUser.length; i++) {
+					  //读取坐标
+					  var distance ="";
+					  var currentLocation = resultUser[i].get("Location").get("point");
+					  //获取距离
+					  distance = userGeoPoint.kilometersTo(currentLocation)
+					  
+					  resultUser[i].add("distance", distance)
+					  
+					}
+					/////////////////////////////////
+					var finalResult = {'code':200,'results':resultUser};
+					response.success(finalResult);
 				},
 				error: function(error) {
-					response.error("Error " + error.code + " : " + error.message + " when query Route in xxx.");
+					response.error("Error " + error.code + " : " + error.message + " when query user in xxx.");
 				}
 			});
 		},
@@ -880,60 +811,30 @@ AV.Cloud.define("saveRoute", function(request, response) {
   var point = new AV.GeoPoint(startLatitude, startLongitude);
   query = new AV.Query("Route");
   
-  //var _User = AV.Object.extend("_User");
+    //var _User = AV.Object.extend("_User");
     user = new AV.Query("_User");
 
     user.equalTo("username",username);
-  user.first( {
+    user.first( {
     success: function(user) {
            //if user not nul
            if (user) {
-           AV.Query.doCloudQuery('select * from Route where user= pointer(\'_User\',?)',[user.id],
-        {
-          success: function(result){
-              
-			var queryResult = result.results[0];
-			//response.success( queryResult);
-			//not exist, insert;  
-            if(!queryResult){
-              var route = new Route();
-               route.set("start", point);
-               route.set("user",user);
-               route.set("userId",user.id);
-               route.save(null, {
-                success: function(result) {
+		       
+               var route = new Route();
+			   route.set("start", point);
+			   route.set("user",user);
+			   route.set("userId",user.id);
+			   route.save(null, {
+				success: function(result) {
 				
 				var finalResult = {'code':200,'results':result};
-                response.success(finalResult);
+				response.success(finalResult);
 				
-                },
-                error: function(result, error) {
-                response.error("Error " + error.code + " : " + error.message + " when save saveRoute.");
-                }
-              });
-            }else{
-              
-              //or update
-              queryResult.set("start", point);
-              
-                queryResult.save(null, {
-                success: function(result) {
-					var finalResult = {'code':200,'results':result};
-					response.success(finalResult);
-                },
-				
-                error: function(result, error) {
-                response.error("Error " + error.code + " : " + error.message + " when update.saveRoute ");
-                }
-              });
-            }
-          },
-          error: function(error){
-          //查询失败，查看 error
-          console.dir(error);
-          }
-        });
-
+				},
+				error: function(result, error) {
+				response.error("Error " + error.code + " : " + error.message + " when save saveRoute.");
+				}
+			  });
            }else{
 			var finalResult = {'code':200,'results':'done'};
 			response.success(finalResult);
@@ -943,7 +844,6 @@ AV.Cloud.define("saveRoute", function(request, response) {
     response.error("Error " + error.code + " : " + error.message + " when user find.");
     }
   });
-
 });
 
 

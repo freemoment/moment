@@ -1,81 +1,77 @@
-// set status  B -> A，eg:3 to 4 ,
-//{"userId":"spring","toUserId":"elppa","originalStatus":3,"goalStatus":4}   done
+// find the ones who have umber  
+// todo: add other condition: gender and isContributor
+//{"longitude":116.403344,"latitude":39.926512,"limitNum":10,"specialDistance":5000,"currentUserName":"spring"}
+AV.Cloud.define("queryNearByOnes", function(request, response) {
+	var longitude = request.params.longitude;
+	var latitude = request.params.latitude;
+	var limitNum = request.params.limitNum;
+	var specialDistance = request.params.specialDistance;
+	var currentUserName = request.params.currentUserName;
+	if(longitude==='' || !longitude || latitude==='' || !latitude ) response.error("param is null when queryUmberOnes.");
+	if(limitNum==='' || !limitNum  || specialDistance==='' || !specialDistance ) response.error("param is null when queryUmberOnes.");
+	if(currentUserName==='' || !currentUserName  ) response.error("currentUserName is null when queryUmberOnes.");
+	// User's  currentlocation
+	var userGeoPoint = new AV.GeoPoint(latitude,longitude)
+	// Create a query for places
+	//var Location = AV.Object.extend('Location');
+	var queryLocation = new AV.Query(Location);
 
-AV.Cloud.define("setStatusForPerformance", function(request, response) {
-
-    // 当前用户id
-    var fromUserId = request.params.userId;
-    var toUserId = request.params.toUserId;
-	// 状态获取
-    var originalStatus = request.params.originalStatus;
-    var goalStatus = request.params.goalStatus;
-	
-	if(fromUserId==='' || toUserId==='' || !fromUserId || !toUserId ) response.error("userId is null when query guys setStatusForPerformance.");
-	if(originalStatus==='' || goalStatus==='' || !originalStatus || !goalStatus ) response.error("status is null when query guys setStatusForPerformance.");
-
-    query = new AV.Query(Relationship);
-    query.equalTo("fromUser", fromUserId);
-    query.equalTo("toUser", toUserId);
-    query.equalTo("status", originalStatus);
-    query.equalTo("isActive", true);
-	
-    query.first({
-    success: function(result) {
-        // not exist, create and save;  
-        if(!result){
-            var finalResult = {'code':200,'results':true};
-			response.success(finalResult);
-
-        }else{
-          // or update
-		  result.set("status",goalStatus);
-          result.save(null, {
-              success: function(result) {
-			    
-				queryReverse = new AV.Query(Relationship);
-				queryReverse.equalTo("fromUser", toUserId);
-				queryReverse.equalTo("toUser", fromUserId);
-				queryReverse.equalTo("status", originalStatus);
-				queryReverse.equalTo("isActive", true);
-				queryReverse.first({
-					success: function(resultdata) {
-					    // not exist
-					    if(!resultdata){
-							
-							var finalResult = {'code':200,'results':true};
-							response.success(finalResult);
-							
-						}else{
-						    resultdata.set("status",goalStatus);
-							////////////////
-							resultdata.save(null, {
-							  success: function(result) {
-								var finalResult = {'code':200,'results':result};
-								response.success(finalResult);
-									
-							  },
-							  error: function(result, error) {
-								response.error("Error " + error.code + " : " + error.message + " when setStatusForPerformance update.");
-							  }
-							});
-						}
-					    
-					},
-					error: function(error) {
-					  response.error("Error " + error.code + " : " + error.message + " when queryReverse  setStatusForPerformance.");
+	// Limit what could be a lot of points.
+	queryLocation.limit(limitNum);
+    queryLocation.include("user");
+	// Interested in locations near user.
+	queryLocation.near("point", userGeoPoint);
+	queryLocation.find({
+		success: function(result) {
+		
+		  // 起点小于300的  
+		  var arrayObjForStart = new Array();
+		  for (var i = 0; i < result.length; i++) {
+		      //读取坐标
+		      var distance ="";
+		      var currentPoint = result[i].get("point");
+			  distance = userGeoPoint.kilometersTo(currentPoint)
+			  if(distance < specialDistance){
+			    //小于300的，加入集合
+				arrayObjForStart.push(result[i].get("user").id);
+			  }
+		    }
+			
+			//var _User = AV.Object.extend('_User');
+			var queryUser = new AV.Query(_User);
+			queryUser.containedIn("objectId",arrayObjForStart);
+			queryUser.include("Location");
+			queryUser.include("image");
+			queryUser.include("installation");
+			queryUser.limit(limitNum);
+			queryUser.notEqualTo("username", currentUserName);
+			queryUser.find({
+				success: function(resultUser) {
+					//response.success(resultUser);
+					//计算和每个用户的距离
+					//var Relationship = AV.Object.extend('Relationship');
+					
+					for (var i = 0; i < resultUser.length; i++) {
+					  //读取坐标
+					  var distance ="";
+					  var currentLocation = resultUser[i].get("Location").get("point");
+					  //获取距离
+					  distance = userGeoPoint.kilometersTo(currentLocation)
+					  
+					  resultUser[i].add("distance", distance)
+					  
 					}
-				});
-				
-              },
-              error: function(result, error) {
-                response.error("Error " + error.code + " : " + error.message + " when update status setStatusForPerformance.");
-              }
-            });
-        }
-    },
-    error: function(error) {
-      response.error("Error " + error.code + " : " + error.message + " when main query setStatusForPerformance.");
-    }
-  });
-
+					/////////////////////////////////
+					var finalResult = {'code':200,'results':resultUser};
+					response.success(finalResult);
+				},
+				error: function(error) {
+					response.error("Error " + error.code + " : " + error.message + " when query user in xxx.");
+				}
+			});
+		},
+		error: function(error) {
+		  response.error("Error " + error.code + " : " + error.message + " when queryLocation guys queryUmberOnes.");
+		}
+	});
 });
